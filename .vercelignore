@@ -1,0 +1,9 @@
+.chrome-*/
+old-1happyend/
+Benel*
+*.png
+*.rar
+*.zip
+node_modules/
+.git/
+.vercel/
