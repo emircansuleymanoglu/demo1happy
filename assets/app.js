@@ -8,6 +8,86 @@
   const transactionsKey = "happyend-demo-transactions";
   const ageKey = "happyend-age-ok";
   const languageKey = "happyend-demo-language";
+  const advInvoicesKey = "happyend-adv-invoices";
+  const advMutationsKey = "happyend-adv-mutations";
+  const advMessagesKey = "happyend-adv-messages";
+  const advReviewsKey = "happyend-adv-reviews";
+  const advNotiKey = "happyend-adv-notifications";
+  const advPhotosKey = "happyend-adv-photos";
+  const advListingKey = "happyend-adv-listing";
+
+  function readJSON(key, fallback) { try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch { return fallback; } }
+  function writeJSON(key, value) { localStorage.setItem(key, JSON.stringify(value)); }
+  function advInvoices() { return readJSON(advInvoicesKey, null) || seedInvoices(); }
+  function saveInvoices(v) { writeJSON(advInvoicesKey, v); }
+  function advMutations() { return readJSON(advMutationsKey, null) || seedMutations(); }
+  function saveMutations(v) { writeJSON(advMutationsKey, v); }
+  function advMessages() { return readJSON(advMessagesKey, null) || seedMessages(); }
+  function saveMessages(v) { writeJSON(advMessagesKey, v); }
+  function advReviews() { return readJSON(advReviewsKey, null) || seedReviews(); }
+  function saveReviews(v) { writeJSON(advReviewsKey, v); }
+  function advNotifications() { return readJSON(advNotiKey, null) || seedNotifications(); }
+  function saveNotifications(v) { writeJSON(advNotiKey, v); }
+  function advPhotos() { return readJSON(advPhotosKey, null) || ["portrait-1.jpg", "portrait-2.jpg"]; }
+  function savePhotos(v) { writeJSON(advPhotosKey, v); }
+  function advListing() { return readJSON(advListingKey, {}); }
+  function saveListing(v) { writeJSON(advListingKey, v); }
+
+  function seedInvoices() {
+    const seed = [
+      { id: "INV-2026-031", date: "2026-04-01", desc: "Premium vitrin · 30 gün", amount: 149, status: "Ödendi" },
+      { id: "INV-2026-027", date: "2026-03-15", desc: "Üst sıra · 7 gün", amount: 99, status: "Ödendi" },
+      { id: "INV-2026-022", date: "2026-03-02", desc: "100 HE Coin", amount: 89, status: "Ödendi" }
+    ];
+    writeJSON(advInvoicesKey, seed); return seed;
+  }
+  function seedMutations() {
+    const seed = [
+      { id: "M1", at: "2026-03-02", text: "Paket alımı INV-2026-022", delta: 100, sign: "+" },
+      { id: "M2", at: "2026-03-12", text: "Üst sıra · Eskort 24s", delta: -19, sign: "-" },
+      { id: "M3", at: "2026-03-20", text: "Mesaj kredisi", delta: -12, sign: "-" },
+      { id: "M4", at: "2026-04-01", text: "Promosyon hediyesi", delta: 50, sign: "+" }
+    ];
+    writeJSON(advMutationsKey, seed); return seed;
+  }
+  function seedMessages() {
+    const seed = [
+      { id: "msg1", from: "Visitor demo", subject: "Müsait misiniz?", body: "Bu akşam Amsterdam'da müsait misiniz? Tarife bilgisini de paylaşır mısınız?", at: Date.now() - 60000, unread: true, replies: [] },
+      { id: "msg2", from: "Support", subject: "Doğrulama tamamlandı", body: "Profil doğrulamanız onaylandı. İlanlarınız artık verifiye rozeti taşıyor.", at: Date.now() - 3600000, unread: false, replies: [] },
+      { id: "msg3", from: "Visitor 91", subject: "Tarife ve konum", body: "Tarifeleriniz ve incall konumu hakkında bilgi alabilir miyim?", at: Date.now() - 86400000, unread: false, replies: [] }
+    ];
+    writeJSON(advMessagesKey, seed); return seed;
+  }
+  function seedReviews() {
+    const seed = [
+      { id: "rv1", user: "guestM", rating: 5, text: "Profesyonel iletişim, doğrulanmış profil. Tavsiye ederim.", at: Date.now() - 2 * 86400000, reply: "", flagged: false },
+      { id: "rv2", user: "vis23", rating: 4, text: "Konum ve fiyat şeffaftı, randevuya uyumluydu.", at: Date.now() - 7 * 86400000, reply: "", flagged: false },
+      { id: "rv3", user: "demo7", rating: 5, text: "Hızlı yanıt, düzgün hizmet.", at: Date.now() - 21 * 86400000, reply: "", flagged: false }
+    ];
+    writeJSON(advReviewsKey, seed); return seed;
+  }
+  function seedNotifications() {
+    const seed = [
+      { id: "n1", title: "İlan görüntülendi", text: "12 yeni görüntüleme", at: Date.now() - 7200000, read: false },
+      { id: "n2", title: "Yeni yorum", text: "vis23 yorum bıraktı", at: Date.now() - 86400000, read: false },
+      { id: "n3", title: "Promosyon", text: "Üst sıra paketiniz 24 saat içinde dolacak", at: Date.now() - 10800000, read: false },
+      { id: "n4", title: "Sistem", text: "Doğrulama hala beklemede", at: Date.now() - 2 * 86400000, read: true }
+    ];
+    writeJSON(advNotiKey, seed); return seed;
+  }
+
+  function fmtDate(ms) {
+    const d = new Date(ms);
+    const pad = n => String(n).padStart(2, "0");
+    return `${pad(d.getDate())}-${pad(d.getMonth() + 1)}-${d.getFullYear()}`;
+  }
+  function fmtRel(ms) {
+    const diff = Date.now() - ms;
+    if (diff < 60000) return "az önce";
+    if (diff < 3600000) return `${Math.floor(diff / 60000)} dk önce`;
+    if (diff < 86400000) return `${Math.floor(diff / 3600000)} sa önce`;
+    return `${Math.floor(diff / 86400000)} gün önce`;
+  }
 
   const languages = [
     ["tr", "Türkçe"], ["en", "English"], ["nl", "Nederlands"], ["de", "Deutsch"],
@@ -1623,14 +1703,18 @@
   }
 
   function advPanelFotos() {
+    const photos = advPhotos();
     return `
       <div class="adv-form">
         <section class="adv-card">
           <h2 class="adv-title-red">Fotoğraf yönetimi</h2>
           <p class="adv-text">Profil galerinize 20 fotoğrafa kadar yükleyebilirsiniz. Yüz fotoğrafı içeren profillere verifiye rozeti uygulanır.</p>
+          <input type="file" id="advPhotoInput" accept="image/*" multiple style="display:none">
           <div class="adv-photo-grid">
-            <button type="button" class="adv-photo-add" data-demo-upload><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span>Yeni fotoğraf</span></button>
-            ${[1,2,3,4,5].map(i => `<div class="adv-photo-slot demo">galeri-${i}.jpg <button type="button" data-demo-save class="adv-photo-x">×</button></div>`).join("")}
+            <button type="button" class="adv-photo-add" id="advPhotoAdd"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span>Yeni fotoğraf</span></button>
+            ${photos.map((p, i) => p.startsWith("data:")
+              ? `<div class="adv-photo-slot uploaded" style="background-image:url('${p}')"><button type="button" data-photo-remove="${i}" class="adv-photo-x">×</button></div>`
+              : `<div class="adv-photo-slot demo">${escapeHtml(p)}<button type="button" data-photo-remove="${i}" class="adv-photo-x">×</button></div>`).join("")}
           </div>
         </section>
       </div>
@@ -1638,28 +1722,29 @@
   }
 
   function advPanelReviews() {
-    const reviews = [
-      { user: "guestM", rating: 5, text: "Profesyonel iletişim, doğrulanmış profil. Tavsiye ederim.", date: "2 gün önce" },
-      { user: "vis23", rating: 4, text: "Konum ve fiyat şeffaftı, randevuya uyumluydu.", date: "1 hafta önce" },
-      { user: "demo7", rating: 5, text: "Hızlı yanıt, düzgün hizmet.", date: "3 hafta önce" }
-    ];
+    const reviews = advReviews();
     return `
       <div class="adv-form">
         <section class="adv-card">
           <h2 class="adv-title-red">Yorumlar</h2>
           <p class="adv-text">Üye yorumlarını burada görüntüler ve yanıtlayabilirsiniz. Şikayet varsa bayrak butonu ile destek hattına iletin.</p>
           <div class="adv-reviews">
-            ${reviews.map(r => `
-              <article class="adv-review">
+            ${reviews.length ? reviews.map(r => `
+              <article class="adv-review${r.flagged ? " flagged" : ""}" data-review-id="${r.id}">
                 <header>
-                  <strong>${r.user}</strong>
+                  <strong>${escapeHtml(r.user)}</strong>
                   <span class="adv-stars">${"★".repeat(r.rating)}${"☆".repeat(5 - r.rating)}</span>
-                  <em>${r.date}</em>
+                  <em>${fmtRel(r.at)}</em>
                 </header>
-                <p>${r.text}</p>
-                <footer><button type="button" class="adv-btn ghost small" data-demo-save>Yanıtla</button><button type="button" class="adv-btn ghost small" data-demo-save>Bayrakla</button></footer>
+                <p>${escapeHtml(r.text)}</p>
+                ${r.reply ? `<div class="adv-review-reply"><strong>Yanıtınız:</strong> ${escapeHtml(r.reply)}</div>` : ""}
+                <footer>
+                  <button type="button" class="adv-btn ghost small" data-review-reply="${r.id}">Yanıtla</button>
+                  <button type="button" class="adv-btn ghost small" data-review-flag="${r.id}">${r.flagged ? "Bayrak kaldır" : "Bayrakla"}</button>
+                  <button type="button" class="adv-btn ghost small" data-review-remove="${r.id}">Sil</button>
+                </footer>
               </article>
-            `).join("")}
+            `).join("") : `<div class="adv-cart-empty">Henüz yorum yok.</div>`}
           </div>
         </section>
       </div>
@@ -1776,23 +1861,32 @@
   }
 
   function advPanelBerichten() {
-    const msgs = [
-      { from: "Visitor demo", subj: "Müsait misiniz?", time: "1 dk önce", unread: true },
-      { from: "Support", subj: "Doğrulama tamamlandı", time: "1 saat önce", unread: false },
-      { from: "Visitor 91", subj: "Tarife ve konum", time: "Dün", unread: false }
-    ];
+    const msgs = advMessages();
+    const totalUnread = msgs.filter(m => m.unread).length;
     return `
       <div class="adv-form">
         <section class="adv-card no-pad">
-          <h2 class="adv-title-red" style="padding:16px 18px 0">Mesajlar</h2>
-          <div class="adv-msg-list">
-            ${msgs.map(m => `
-              <article class="adv-msg ${m.unread ? "unread" : ""}">
-                <strong>${m.from}</strong>
-                <span>${m.subj}</span>
-                <em>${m.time}</em>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px 6px">
+            <h2 class="adv-title-red" style="margin:0">Mesajlar ${totalUnread ? `<span class="adv-badge ok" style="background:#df2f45;color:#fff">${totalUnread} yeni</span>` : ""}</h2>
+            <button type="button" class="adv-btn ghost small" data-msg-mark-read>Tümünü okundu işaretle</button>
+          </div>
+          <div class="adv-msg-list" id="advMsgList">
+            ${msgs.length ? msgs.map(m => `
+              <article class="adv-msg ${m.unread ? "unread" : ""}" data-msg-id="${m.id}">
+                <strong>${escapeHtml(m.from)}</strong>
+                <span>${escapeHtml(m.subject)}</span>
+                <em>${fmtRel(m.at)}</em>
+                <div class="adv-msg-body">
+                  <p>${escapeHtml(m.body)}</p>
+                  ${m.replies && m.replies.length ? `<ul class="adv-msg-replies">${m.replies.map(r => `<li><strong>Siz:</strong> ${escapeHtml(r.text)} <em>${fmtRel(r.at)}</em></li>`).join("")}</ul>` : ""}
+                  <div class="adv-msg-actions">
+                    <input type="text" class="adv-input" data-msg-input="${m.id}" placeholder="Yanıt yazın...">
+                    <button type="button" class="adv-btn primary small" data-msg-reply="${m.id}">Gönder</button>
+                    <button type="button" class="adv-btn ghost small" data-msg-remove="${m.id}">Sil</button>
+                  </div>
+                </div>
               </article>
-            `).join("")}
+            `).join("") : `<div class="adv-cart-empty" style="padding:24px">Henüz mesaj yok.</div>`}
           </div>
         </section>
       </div>
@@ -1800,15 +1894,24 @@
   }
 
   function advPanelMeldingen() {
+    const items = advNotifications();
     return `
       <div class="adv-form">
         <section class="adv-card">
-          <h2 class="adv-title-red">Bildirimler</h2>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+            <h2 class="adv-title-red" style="margin:0">Bildirimler</h2>
+            <div style="display:flex;gap:8px">
+              <button type="button" class="adv-btn ghost small" data-noti-read-all>Tümünü okundu işaretle</button>
+              <button type="button" class="adv-btn ghost small" data-noti-clear>Tümünü temizle</button>
+            </div>
+          </div>
           <ul class="adv-noti">
-            <li><strong>İlan görüntülendi</strong> · 12 yeni görüntüleme · 2 saat önce</li>
-            <li><strong>Yeni yorum</strong> · vis23 yorum bıraktı · dün</li>
-            <li><strong>Promosyon</strong> · Üst sıra paketiniz 24 saat içinde dolacak · 3 saat önce</li>
-            <li><strong>Sistem</strong> · Doğrulama hala beklemede · 2 gün önce</li>
+            ${items.length ? items.map(n => `
+              <li class="${n.read ? "" : "unread"}" data-noti-id="${n.id}">
+                <strong>${escapeHtml(n.title)}</strong> · ${escapeHtml(n.text)} · ${fmtRel(n.at)}
+                <button type="button" class="adv-noti-x" data-noti-remove="${n.id}" title="Sil">×</button>
+              </li>
+            `).join("") : `<li class="adv-cart-empty">Bildirim yok.</li>`}
           </ul>
         </section>
       </div>
@@ -1816,11 +1919,7 @@
   }
 
   function advPanelFacturen() {
-    const rows = [
-      ["INV-2026-031", "01-04-2026", "Premium vitrin · 30 gün", "€149,00", "Ödendi"],
-      ["INV-2026-027", "15-03-2026", "Üst sıra · 7 gün", "€99,00", "Ödendi"],
-      ["INV-2026-022", "02-03-2026", "100 HE Coin", "€89,00", "Ödendi"]
-    ];
+    const inv = advInvoices();
     return `
       <div class="adv-form">
         <section class="adv-card">
@@ -1828,7 +1927,14 @@
           <table class="adv-table">
             <thead><tr><th>No</th><th>Tarih</th><th>Açıklama</th><th>Tutar</th><th>Durum</th><th></th></tr></thead>
             <tbody>
-              ${rows.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td><span class="adv-badge ok">${r[4]}</span></td><td><a href="#" data-demo-save>PDF</a></td></tr>`).join("")}
+              ${inv.length ? inv.map(r => `<tr>
+                <td>${escapeHtml(r.id)}</td>
+                <td>${fmtDate(new Date(r.date).getTime())}</td>
+                <td>${escapeHtml(r.desc)}</td>
+                <td>€${Number(r.amount).toFixed(2).replace(".", ",")}</td>
+                <td><span class="adv-badge ok">${escapeHtml(r.status)}</span></td>
+                <td><button type="button" class="adv-link-btn" data-invoice-pdf="${escapeHtml(r.id)}">PDF indir</button></td>
+              </tr>`).join("") : `<tr><td colspan="6" style="text-align:center;color:#888;padding:20px">Henüz faturanız yok. <a href="#!promotie" style="color:#df2f45;font-weight:700">Paket satın alın →</a></td></tr>`}
             </tbody>
           </table>
         </section>
@@ -1837,25 +1943,77 @@
   }
 
   function advPanelMutaties() {
-    const rows = [
-      ["+100 kredi", "Paket alımı INV-2026-022", "02-03-2026", "+"],
-      ["-19 kredi", "Üst sıra · Eskort 24s", "12-03-2026", "-"],
-      ["-12 kredi", "Mesaj kredisi", "20-03-2026", "-"],
-      ["+50 kredi", "Promosyon hediyesi", "01-04-2026", "+"]
-    ];
+    const rows = advMutations();
+    const balance = rows.reduce((sum, r) => sum + Number(r.delta || 0), 0);
     return `
       <div class="adv-form">
         <section class="adv-card">
-          <h2 class="adv-title-red">Bakiye hareketleri</h2>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+            <h2 class="adv-title-red" style="margin:0">Bakiye hareketleri</h2>
+            <strong style="font-size:18px">Güncel bakiye: ${balance} kredi</strong>
+          </div>
           <table class="adv-table">
             <thead><tr><th>Hareket</th><th>Açıklama</th><th>Tarih</th></tr></thead>
             <tbody>
-              ${rows.map(r => `<tr class="${r[3] === '+' ? 'pos' : 'neg'}"><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join("")}
+              ${rows.length ? rows.map(r => `<tr class="${r.sign === '+' ? 'pos' : 'neg'}">
+                <td>${r.sign}${Math.abs(r.delta)} kredi</td>
+                <td>${escapeHtml(r.text)}</td>
+                <td>${fmtDate(new Date(r.at).getTime())}</td>
+              </tr>`).join("") : `<tr><td colspan="3" style="text-align:center;color:#888;padding:20px">Hareket yok.</td></tr>`}
             </tbody>
           </table>
         </section>
       </div>
     `;
+  }
+
+  function generateInvoicePdf(invoiceId) {
+    const inv = advInvoices().find(x => x.id === invoiceId);
+    if (!inv) { toast("Fatura bulunamadı."); return; }
+    const a = currentAccount() || {};
+    const lib = window.jspdf || window.jsPDF;
+    if (!lib) { toast("PDF kütüphanesi yükleniyor, lütfen tekrar deneyin."); return; }
+    const { jsPDF } = lib;
+    const doc = new jsPDF({ unit: "pt", format: "a4" });
+    const w = doc.internal.pageSize.getWidth();
+    doc.setFillColor(223, 47, 69);
+    doc.rect(0, 0, w, 80, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(22);
+    doc.text("1HappyEnd", 40, 50);
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "normal");
+    doc.text("Reklam veren faturasi", 40, 68);
+    doc.setTextColor(40, 40, 40);
+    doc.setFontSize(13);
+    doc.setFont("helvetica", "bold");
+    doc.text(`Fatura no: ${inv.id}`, 40, 120);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(11);
+    doc.text(`Tarih: ${inv.date}`, 40, 140);
+    doc.text(`Musteri: ${(a.name || a.username || "Demo Reklam Veren").replace(/[^\x00-\x7F]/g, "?")}`, 40, 158);
+    doc.text(`E-posta: ${(a.email || "advertiser@demo.local")}`, 40, 176);
+    doc.line(40, 200, w - 40, 200);
+    doc.setFont("helvetica", "bold");
+    doc.text("Aciklama", 40, 220);
+    doc.text("Tutar", w - 100, 220);
+    doc.setFont("helvetica", "normal");
+    doc.text(String(inv.desc).replace(/[^\x00-\x7F]/g, "?"), 40, 240);
+    doc.text(`EUR ${Number(inv.amount).toFixed(2)}`, w - 100, 240);
+    doc.line(40, 260, w - 40, 260);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(13);
+    doc.text("Toplam:", w - 180, 285);
+    doc.text(`EUR ${Number(inv.amount).toFixed(2)}`, w - 100, 285);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.setTextColor(120, 120, 120);
+    doc.text(`Durum: ${inv.status}`, 40, 285);
+    doc.text("KDV demo amacli yansitilmamistir.", 40, 320);
+    doc.text("1HappyEnd Media BV - 1017 AB Amsterdam - Tel: +31 20 000 0000", 40, 800);
+    doc.save(`${inv.id}.pdf`);
+    toast(`${inv.id}.pdf indirildi.`);
   }
 
   function advPanelByKey(view, a) {
@@ -1909,8 +2067,7 @@
       <div class="adv-topbar">
         <div class="adv-topbar-inner">
           <a class="adv-brand" href="../">
-            <span class="adv-brand-mark"></span>
-            <strong>1HappyEnd</strong>
+            <img src="../assets/brand/logo.png" alt="1HappyEnd">
           </a>
           <div class="adv-topbar-spacer"></div>
           <a class="adv-top-link" href="#!berichten">Müşteri hizmetleri</a>
@@ -1949,11 +2106,135 @@
     document.getElementById("advCartCount") && (document.getElementById("advCartCount").textContent = String(advCart().length));
   }
 
+  function nextInvoiceId() {
+    const inv = advInvoices();
+    const year = new Date().getFullYear();
+    const nums = inv.map(i => Number((i.id.match(/-(\d+)$/) || [0, 0])[1])).filter(Boolean);
+    const next = (nums.length ? Math.max(...nums) : 0) + 1;
+    return `INV-${year}-${String(next).padStart(3, "0")}`;
+  }
+
+  function completeAkkoord() {
+    const t = document.getElementById("advAkkoordTerms");
+    const ag = document.getElementById("advAkkoordAge");
+    const rf = document.getElementById("advAkkoordRefund");
+    if (!t || !ag || !rf) { toast("Onay alanları yüklenmedi, sayfayı yenileyin."); return; }
+    if (!t.checked || !ag.checked || !rf.checked) { toast("Devam etmek için tüm onayları işaretleyin."); return; }
+    const items = advCart();
+    if (!items.length) { toast("Sepet boş."); return; }
+    const total = items.reduce((sum, it) => sum + priceOf(it.price), 0);
+    const today = new Date().toISOString().slice(0, 10);
+    const desc = items.map(it => it.title).join(" + ");
+    const invId = nextInvoiceId();
+    const inv = advInvoices();
+    inv.unshift({ id: invId, date: today, desc, amount: total, status: "Ödendi" });
+    saveInvoices(inv);
+    const muts = advMutations();
+    items.forEach(it => {
+      const credit = it.id === "kredi" ? Number((it.title.match(/(\d+)\s*kredi/) || [0, 0])[1]) : 0;
+      if (credit) muts.unshift({ id: `M${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, at: today, text: `${it.title} (${invId})`, delta: credit, sign: "+" });
+    });
+    muts.unshift({ id: `M${Date.now()}`, at: today, text: `Ödeme ${invId}`, delta: -total, sign: "-" });
+    saveMutations(muts);
+    const noti = advNotifications();
+    noti.unshift({ id: `n${Date.now()}`, title: "Ödeme alındı", text: `${invId} faturası oluşturuldu (€${total}).`, at: Date.now(), read: false });
+    saveNotifications(noti);
+    const a = currentAccount();
+    if (a) {
+      const list = accounts();
+      const idx = list.findIndex(x => x.username === a.username && x.role === a.role);
+      if (idx >= 0) {
+        list[idx].balance = Math.max(0, (list[idx].balance || 0) + Math.floor(total / 10));
+        saveAccounts(list);
+      }
+    }
+    recordTransaction("Advertiser akkoord", "card", `€${total.toFixed(0)}`);
+    saveAdvCart([]);
+    toast(`Akkoord onaylandı. ${invId} faturası oluşturuldu.`);
+    location.hash = "#!facturen";
+  }
+
   function bindAdvertiserDashboard() {
     document.getElementById("advLogout")?.addEventListener("click", () => { setSession(null); location.href = "../index.html"; });
     document.getElementById("advTopLogout")?.addEventListener("click", () => { setSession(null); location.href = "../index.html"; });
-    document.querySelectorAll("[data-demo-upload]").forEach(el => el.addEventListener("click", () => toast("Dosya yükleme demo akışında simüle edildi.")));
-    document.querySelectorAll("[data-demo-save]").forEach(el => el.addEventListener("click", event => { event.preventDefault(); toast("Değişiklikler kaydedildi."); }));
+
+    // Photo upload
+    const photoAdd = document.getElementById("advPhotoAdd");
+    const photoInput = document.getElementById("advPhotoInput");
+    photoAdd?.addEventListener("click", () => photoInput?.click());
+    photoInput?.addEventListener("change", event => {
+      const files = Array.from(event.target.files || []);
+      if (!files.length) return;
+      const photos = advPhotos();
+      let pending = files.length;
+      files.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          photos.push(reader.result);
+          if (--pending === 0) {
+            savePhotos(photos);
+            toast(`${files.length} fotoğraf yüklendi.`);
+            advertiserDashboard();
+          }
+        };
+        reader.readAsDataURL(file);
+      });
+    });
+
+    // Save listing form
+    document.getElementById("advAdvertentieForm")?.addEventListener("submit", event => {
+      event.preventDefault();
+      const data = {
+        name: document.getElementById("advName")?.value || "",
+        headline: document.getElementById("advHeadline")?.value || "",
+        about: document.getElementById("advAbout")?.value || "",
+        promoSticker: document.getElementById("advPromoSticker")?.value || "",
+        categories: Array.from(document.querySelectorAll('input[name="advCategory"]:checked')).map(el => el.value),
+        savedAt: Date.now()
+      };
+      saveListing(data);
+      const a = currentAccount();
+      if (a) {
+        const list = accounts();
+        const idx = list.findIndex(x => x.username === a.username && x.role === a.role);
+        if (idx >= 0) {
+          list[idx].listingTitle = data.name;
+          list[idx].bio = data.about;
+          saveAccounts(list);
+        }
+      }
+      toast("İlan bilgileri kaydedildi.");
+      location.hash = "#!doğrulama";
+    });
+
+    document.getElementById("advValidatieForm")?.addEventListener("submit", event => {
+      event.preventDefault();
+      const noti = advNotifications();
+      noti.unshift({ id: `n${Date.now()}`, title: "Doğrulama", text: "Numara doğrulama tamamlandı.", at: Date.now(), read: false });
+      saveNotifications(noti);
+      toast("Doğrulama bilgileri kaydedildi.");
+      location.hash = "#!promotie";
+    });
+
+    // Settings save (instellingen panel)
+    document.querySelectorAll("[data-demo-save]").forEach(el => el.addEventListener("click", event => {
+      event.preventDefault();
+      const a = currentAccount();
+      if (a) {
+        const list = accounts();
+        const idx = list.findIndex(x => x.username === a.username && x.role === a.role);
+        if (idx >= 0) {
+          const name = document.getElementById("memberName")?.value;
+          const email = document.getElementById("memberEmail")?.value;
+          if (name) list[idx].name = name.trim();
+          if (email) list[idx].email = email.trim();
+          saveAccounts(list);
+        }
+      }
+      toast("Değişiklikler kaydedildi.");
+    }));
+
+    // Add to cart
     document.querySelectorAll("[data-add-cart]").forEach(el => el.addEventListener("click", () => {
       const [id, title, price] = el.dataset.addCart.split("|");
       const items = advCart();
@@ -1963,38 +2244,101 @@
       const count = document.getElementById("advCartCount"); if (count) count.textContent = String(items.length);
       toast(`${title} sepete eklendi.`);
     }));
-    document.body.addEventListener("click", event => {
-      const rm = event.target.closest("[data-cart-remove]");
-      if (rm) {
-        const items = advCart();
-        items.splice(Number(rm.dataset.cartRemove), 1);
-        saveAdvCart(items);
-        renderAdvCart();
-        const count = document.getElementById("advCartCount"); if (count) count.textContent = String(items.length);
-      }
-      const ak = event.target.closest("[data-adv-akkoord]");
-      if (ak) {
-        const t = document.getElementById("advAkkoordTerms");
-        const ag = document.getElementById("advAkkoordAge");
-        const rf = document.getElementById("advAkkoordRefund");
-        if (t && ag && rf && (!t.checked || !ag.checked || !rf.checked)) { toast("Devam etmek için tüm onayları işaretleyin."); return; }
-        const items = advCart();
-        const total = items.reduce((sum, it) => sum + priceOf(it.price), 0);
-        recordTransaction("Advertiser akkoord", "card", `€${total.toFixed(0)}`);
-        saveAdvCart([]);
-        renderAdvCart();
-        const count = document.getElementById("advCartCount"); if (count) count.textContent = "0";
-        toast("Akkoord verildi. Ödeme akışı kuyruğa alındı.");
-      }
-    }, { once: true });
-    document.getElementById("advAdvertentieForm")?.addEventListener("submit", event => {
-      event.preventDefault();
-      location.hash = "#!doğrulama";
-    });
-    document.getElementById("advValidatieForm")?.addEventListener("submit", event => {
-      event.preventDefault();
-      location.hash = "#!promotie";
-    });
+
+    // Delegated click handler for storage-backed actions
+    if (!window.__advClickBound) {
+      window.__advClickBound = true;
+      document.body.addEventListener("click", event => {
+        const rm = event.target.closest("[data-cart-remove]");
+        const ak = event.target.closest("[data-adv-akkoord]");
+        const pdf = event.target.closest("[data-invoice-pdf]");
+        const photoRm = event.target.closest("[data-photo-remove]");
+        const msgReply = event.target.closest("[data-msg-reply]");
+        const msgRemove = event.target.closest("[data-msg-remove]");
+        const msgMarkRead = event.target.closest("[data-msg-mark-read]");
+        const reviewReply = event.target.closest("[data-review-reply]");
+        const reviewFlag = event.target.closest("[data-review-flag]");
+        const reviewRemove = event.target.closest("[data-review-remove]");
+        const notiReadAll = event.target.closest("[data-noti-read-all]");
+        const notiClear = event.target.closest("[data-noti-clear]");
+        const notiRemove = event.target.closest("[data-noti-remove]");
+        if (rm) {
+          const items = advCart();
+          items.splice(Number(rm.dataset.cartRemove), 1);
+          saveAdvCart(items);
+          renderAdvCart();
+          const count = document.getElementById("advCartCount"); if (count) count.textContent = String(items.length);
+        }
+        if (ak) completeAkkoord();
+        if (pdf) generateInvoicePdf(pdf.dataset.invoicePdf);
+        if (photoRm) {
+          const photos = advPhotos();
+          photos.splice(Number(photoRm.dataset.photoRemove), 1);
+          savePhotos(photos);
+          advertiserDashboard();
+        }
+        if (msgReply) {
+          const id = msgReply.dataset.msgReply;
+          const input = document.querySelector(`[data-msg-input="${id}"]`);
+          const text = input?.value.trim();
+          if (!text) { toast("Yanıt boş olamaz."); return; }
+          const msgs = advMessages();
+          const m = msgs.find(x => x.id === id);
+          if (m) {
+            m.replies = m.replies || [];
+            m.replies.push({ text, at: Date.now() });
+            m.unread = false;
+            saveMessages(msgs);
+            toast("Yanıt gönderildi.");
+            advertiserDashboard();
+          }
+        }
+        if (msgRemove) {
+          const id = msgRemove.dataset.msgRemove;
+          saveMessages(advMessages().filter(x => x.id !== id));
+          toast("Mesaj silindi.");
+          advertiserDashboard();
+        }
+        if (msgMarkRead) {
+          const msgs = advMessages().map(m => ({ ...m, unread: false }));
+          saveMessages(msgs);
+          advertiserDashboard();
+        }
+        if (reviewReply) {
+          const id = reviewReply.dataset.reviewReply;
+          const text = prompt("Yanıtınızı yazın:");
+          if (!text) return;
+          const list = advReviews();
+          const r = list.find(x => x.id === id);
+          if (r) { r.reply = text; saveReviews(list); toast("Yorum yanıtlandı."); advertiserDashboard(); }
+        }
+        if (reviewFlag) {
+          const id = reviewFlag.dataset.reviewFlag;
+          const list = advReviews();
+          const r = list.find(x => x.id === id);
+          if (r) { r.flagged = !r.flagged; saveReviews(list); toast(r.flagged ? "Yorum bayraklandı." : "Bayrak kaldırıldı."); advertiserDashboard(); }
+        }
+        if (reviewRemove) {
+          const id = reviewRemove.dataset.reviewRemove;
+          saveReviews(advReviews().filter(x => x.id !== id));
+          toast("Yorum silindi.");
+          advertiserDashboard();
+        }
+        if (notiReadAll) {
+          saveNotifications(advNotifications().map(n => ({ ...n, read: true })));
+          advertiserDashboard();
+        }
+        if (notiClear) {
+          if (confirm("Tüm bildirimleri silmek istediğinize emin misiniz?")) { saveNotifications([]); advertiserDashboard(); }
+        }
+        if (notiRemove) {
+          const id = notiRemove.dataset.notiRemove;
+          saveNotifications(advNotifications().filter(n => n.id !== id));
+          advertiserDashboard();
+        }
+      });
+    }
+
     if (!window.__advHashBound) {
       window.__advHashBound = true;
       window.addEventListener("hashchange", () => advertiserDashboard());
@@ -2125,7 +2469,8 @@
     tx.unshift({ type, method, amount, user: s ? s.username : "guest", at: Date.now() });
     saveTransactions(tx);
     toast(t("paymentQueued"));
-    document.getElementById("modalHost").innerHTML = "";
+    const host = document.getElementById("modalHost");
+    if (host) host.innerHTML = "";
   }
 
   function toast(text) {
