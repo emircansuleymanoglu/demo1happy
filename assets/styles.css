@@ -4372,3 +4372,120 @@ a {
     max-height: 48px !important;
   }
 }
+
+/* Account area polish: tighter Mijn-style layout, original 1HappyEnd branding */
+body {
+  font-family: "Open Sans", Arial, Helvetica, sans-serif;
+  font-size: 13px;
+  color: #4e4c4c;
+  background: #fff;
+}
+.classic-brand {
+  flex: 0 0 116px !important;
+  height: 54px;
+  align-items: center;
+  overflow: hidden;
+}
+.classic-brand img {
+  width: 116px !important;
+  height: 46px !important;
+  max-height: 46px !important;
+  object-fit: contain;
+  filter: none !important;
+  border: 0;
+}
+.classic-mainbar {
+  min-height: 56px !important;
+  gap: 22px;
+}
+.account-settings-shell {
+  max-width: 1280px;
+  grid-template-columns: 200px 480px minmax(260px, 1fr);
+  gap: 16px;
+  padding: 0 16px 64px;
+  background: #fff;
+}
+.account-settings-sidebar {
+  min-height: 760px;
+  padding: 28px 15px 20px;
+  background: #f3f3f3;
+}
+.account-settings-sidebar a,
+.account-settings-sidebar button {
+  min-height: 30px;
+  padding: 0;
+  color: #222;
+  font-size: 13px;
+  line-height: 1.25;
+}
+.account-settings-sidebar a.active {
+  font-weight: 700;
+}
+.account-settings-main {
+  width: 480px;
+  padding-top: 24px;
+}
+.account-settings-main h1 {
+  margin: 0 0 8px;
+  color: var(--classic-red);
+  font-size: 20px;
+  font-weight: 700;
+}
+.settings-card {
+  width: 480px;
+  margin: 0 0 16px;
+  padding: 20px 20px 18px;
+  border: 1px solid #dedede;
+  box-shadow: none;
+}
+.settings-card h2 {
+  margin-bottom: 12px;
+  font-size: 20px;
+  font-weight: 700;
+}
+.settings-card p,
+.settings-card label,
+.settings-card input,
+.settings-card select,
+.settings-card textarea,
+.account-list-row,
+.message-list.compact span {
+  font-size: 13px;
+}
+.settings-card input[type="text"],
+.settings-card input[type="email"],
+.settings-card input[type="password"],
+.settings-card select,
+.settings-card textarea,
+.settings-card input:not([type]) {
+  min-height: 34px;
+  padding: 6px 10px;
+  border-color: #bcbcbc;
+}
+.settings-save {
+  min-height: 34px;
+  padding: 0 14px;
+  font-size: 13px;
+}
+.settings-radios label {
+  min-height: 35px;
+}
+@media (max-width: 1100px) {
+  .account-settings-main,
+  .settings-card {
+    width: 100%;
+  }
+}
+@media (max-width: 680px) {
+  .classic-brand {
+    flex-basis: 104px !important;
+  }
+  .classic-brand img {
+    width: 104px !important;
+    height: 42px !important;
+  }
+  .account-settings-shell {
+    grid-template-columns: 1fr;
+    padding: 0 10px 34px;
+  }
+}
