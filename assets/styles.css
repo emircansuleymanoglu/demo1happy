@@ -4418,6 +4418,13 @@ body {
   font-size: 13px;
   line-height: 1.25;
 }
+.account-settings-sidebar strong {
+  display: block;
+  margin: 18px 0 8px;
+  color: #333;
+  font-size: 13px;
+  font-weight: 800;
+}
 .account-settings-sidebar a.active {
   font-weight: 700;
 }
@@ -4470,9 +4477,122 @@ body {
 .settings-radios label {
   min-height: 35px;
 }
+.ad-create-panel {
+  width: min(914px, calc(100vw - 260px));
+}
+.ad-create-panel h2 {
+  text-align: center;
+}
+.ad-steps {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  margin: -20px -20px 24px;
+  border: 1px solid #e1e1e1;
+}
+.ad-steps span {
+  position: relative;
+  min-height: 58px;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  border-right: 1px solid #e1e1e1;
+  background: #fafafa;
+  color: #555;
+}
+.ad-steps span:last-child {
+  border-right: 0;
+}
+.ad-steps span.active {
+  background: var(--classic-yellow);
+  color: #222;
+  font-weight: 800;
+}
+.ad-form {
+  width: min(778px, 100%);
+  margin: 0 auto;
+}
+.ad-form > strong {
+  display: block;
+  margin-bottom: 10px;
+}
+.service-check-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 90px;
+  margin: 0 0 48px;
+}
+.service-check-grid label {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0;
+}
+.service-check-grid input,
+.emoji-input + input {
+  width: auto;
+}
+.ad-form label {
+  position: relative;
+  margin-top: 18px;
+  font-weight: 800;
+}
+.char-count {
+  float: right;
+  color: #444;
+  font-weight: 400;
+}
+.emoji-input {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  align-items: center;
+  border: 1px solid #bcbcbc;
+  background: #fff;
+}
+.emoji-input span {
+  text-align: center;
+  color: #555;
+}
+.emoji-input input,
+.emoji-input textarea {
+  width: 100% !important;
+  margin: 0 !important;
+  border: 0 !important;
+}
+.emoji-input.textarea {
+  align-items: start;
+}
+.emoji-input.textarea span {
+  padding-top: 9px;
+}
+.emoji-input textarea {
+  min-height: 110px;
+}
+.ad-note {
+  margin: 26px 0 18px;
+  padding: 16px 12px;
+  border: 1px solid #f5df8a;
+  background: #fff9df;
+}
+.ad-note p {
+  margin: 12px 0 0;
+  padding-left: 20px;
+}
+.ad-form-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 18px;
+}
+.settings-save.primary-fill {
+  background: #20964d;
+  color: #fff;
+}
 @media (max-width: 1100px) {
   .account-settings-main,
   .settings-card {
+    width: 100%;
+  }
+  .ad-create-panel {
     width: 100%;
   }
 }
@@ -4487,5 +4607,16 @@ body {
   .account-settings-shell {
     grid-template-columns: 1fr;
     padding: 0 10px 34px;
+  }
+  .ad-steps {
+    grid-template-columns: 1fr;
+  }
+  .service-check-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin-bottom: 28px;
+  }
+  .ad-form-actions {
+    flex-direction: column;
   }
 }

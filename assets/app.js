@@ -913,7 +913,7 @@
 
   function accountPanelKey(label, isAdvertiser) {
     const visitor = { "Settings": "settings", "Reviews": "reviews", "Messages": "messages", "Notifications": "notifications" };
-    const advertiser = { "Ayarlar": "settings", "Profil": "profile", "Ilanlar": "listings", "Medya": "media", "Paketler": "packages", "Odemeler": "payments", "Mesajlar": "messages" };
+    const advertiser = { "Dashboard": "dashboard", "Advertentie": "advertentie", "Foto's": "photos", "Reviews": "reviews", "Video's": "videos", "Instellingen": "settings", "Berichten": "messages", "Meldingen": "notifications", "Facturen": "invoices", "Tegoed mutaties": "credits" };
     return (isAdvertiser ? advertiser : visitor)[label] || "settings";
   }
 
@@ -924,19 +924,22 @@
     const isAdvertiser = a.role === "advertiser";
     const activity = accountActivity(a);
     const settingsMenu = isAdvertiser
-      ? ["Ayarlar", "Profil", "Ilanlar", "Medya", "Paketler", "Odemeler", "Mesajlar"]
+      ? ["Dashboard", "Advertentie", "Foto's", "Reviews", "Video's", "Instellingen", "Berichten", "Meldingen", "Facturen", "Tegoed mutaties"]
       : ["Settings", "Reviews", "Messages", "Notifications"];
+    const sidebarHtml = isAdvertiser
+      ? `<a class="active" href="#" data-account-menu="dashboard">▦ Dashboard</a><strong>Beheer</strong>${["Advertentie", "Foto's", "Reviews", "Video's"].map(item => `<a href="#" data-account-menu="${accountPanelKey(item, true)}">${item}</a>`).join("")}<strong>Account</strong>${["Instellingen", "Berichten", "Meldingen", "Facturen", "Tegoed mutaties"].map(item => `<a href="#" data-account-menu="${accountPanelKey(item, true)}">${item}</a>`).join("")}`
+      : `${settingsMenu.map((item, index) => `<a class="${index === 0 ? "active" : ""}" href="#" data-account-menu="${accountPanelKey(item, false)}">${item}</a>`).join("")}`;
     root.innerHTML = `
       ${accountVersionBanner()}
       ${header("account")}
       ${s && s.needsSettingsConfirm ? settingsConfirmModal(a) : ""}
       <main class="account-settings-shell">
         <aside class="account-settings-sidebar">
-          ${settingsMenu.map((item, index) => `<a class="${index === 0 ? "active" : ""}" href="#" data-account-menu="${accountPanelKey(item, isAdvertiser)}">${item}</a>`).join("")}
+          ${sidebarHtml}
           <button id="memberLogout">${isAdvertiser ? "Uitloggen" : "Log out"}</button>
         </aside>
         <section class="account-settings-main">
-          <h1 id="accountPanelTitle">${isAdvertiser ? "Ayarlar" : "Settings"}</h1>
+          <h1 id="accountPanelTitle">${isAdvertiser ? "Dashboard" : "Settings"}</h1>
           <article class="settings-card" data-account-panel="settings">
             <h2>Wijzig bijnaam</h2>
             <label>Nieuwe bijnaam</label>
@@ -951,21 +954,42 @@
             </select>
           </article>
           ${isAdvertiser ? `
-            <article class="settings-card advertiser-card" data-account-panel="profile">
-              <h2>Advertentieprofiel</h2>
-              <label>Profielnaam</label>
-              <input id="memberListingTitle" value="${escapeHtml(a.listingTitle || "1HappyEnd demo profiel")}">
-              <label>Dienst</label>
-              <select id="memberService">${services.slice(1).map(svc => `<option>${svc}</option>`).join("")}</select>
-              <label>Stad</label>
-              <select id="memberCity">${cities.slice(1).map(city => `<option>${city}</option>`).join("")}</select>
-              <label>Prijsindicatie</label>
-              <input id="memberPrice" value="€180 per uur">
-              <label>Korte omschrijving</label>
-              <textarea id="memberBio">Foto, video, prijs en beschikbaarheid kunnen hier worden voorbereid.</textarea>
-              <button class="settings-save" data-demo-save>Wijzigingen opslaan</button>
+            <article class="settings-card advertiser-card" data-account-panel="dashboard">
+              <div class="mini-table">
+                <div><span>Advertentie status</span><strong>Concept</strong></div>
+                <div><span>Profiel controle</span><strong>Validatie nodig</strong></div>
+                <div><span>Saldo</span><strong>€${a.balance || 100}</strong></div>
+              </div>
+              <button class="settings-save" type="button" data-account-jump="advertentie">Nieuwe advertentie afronden</button>
             </article>
-            <article class="settings-card advertiser-card" data-account-panel="media">
+            <article class="settings-card advertiser-card ad-create-panel" data-account-panel="advertentie">
+              <nav class="ad-steps" aria-label="Advertentie stappen">
+                <span class="active">1. Advertentie</span>
+                <span>2. Validatie</span>
+                <span>3. Promotie</span>
+                <span>4. Akkoord</span>
+              </nav>
+              <div class="ad-form">
+                <h2>Advertentie</h2>
+                <strong>Aangeboden diensten:</strong>
+                <div class="service-check-grid">
+                  ${["Prive ontvangst", "Escort", "Erotische massage", "BDSM", "Virtual sex", "Raamprostitutie"].map(label => `<label><input type="checkbox"> ${label}</label>`).join("")}
+                </div>
+                <label>Naam:<span class="char-count">0/25</span></label>
+                <input id="memberListingTitle" maxlength="25" value="${escapeHtml(a.listingTitle || "")}">
+                <label>Titel:<span class="char-count">0/50</span></label>
+                <div class="emoji-input"><span>●</span><input id="memberAdTitle" maxlength="50"></div>
+                <div class="ad-note"><strong>Emoji's (€1,09/dag) worden alleen weergegeven als je een Exclusieve advertentie hebt.</strong><p>In stap 3 kan je kiezen voor een Exclusieve advertentie.</p></div>
+                <label>Tekst:<span class="char-count">0/2000</span></label>
+                <div class="emoji-input textarea"><span>●</span><textarea id="memberBio" maxlength="2000"></textarea></div>
+                <label>Stad:</label>
+                <select id="memberCity">${cities.slice(1).map(city => `<option>${city}</option>`).join("")}</select>
+                <label>Prijsindicatie:</label>
+                <input id="memberPrice" value="€180 per uur">
+                <div class="ad-form-actions"><button class="settings-save" data-demo-save>Concept opslaan</button><button class="settings-save primary-fill" type="button" data-account-jump="photos">Volgende stap</button></div>
+              </div>
+            </article>
+            <article class="settings-card advertiser-card" data-account-panel="photos">
               <h2>Media & verificatie</h2>
               <div class="advertiser-status"><span>Profielstatus</span><strong>Concept · admin controle nodig</strong></div>
               <div class="media-upload-grid">
@@ -976,21 +1000,23 @@
               </div>
               <p>Media wordt in deze demo lokaal gesimuleerd. In de echte versie komt hier upload, preview en moderatie.</p>
             </article>
-            <article class="settings-card advertiser-card" data-account-panel="listings">
-              <div class="account-list-row"><strong>1HappyEnd demo profiel</strong><span>Concept</span><button type="button" data-demo-save>Bewerken</button></div>
-              <div class="account-list-row"><strong>Nieuwe advertentie</strong><span>Nog niet gepubliceerd</span><button type="button" data-demo-save>Aanmaken</button></div>
-              <p>Advertenties worden na betaling en admincontrole zichtbaar in de lijst.</p>
+            <article class="settings-card advertiser-card" data-account-panel="reviews">
+              <div class="message-list compact">${activityRows(activity.reviews)}</div>
             </article>
-            <article class="settings-card advertiser-card" data-account-panel="packages">
+            <article class="settings-card advertiser-card" data-account-panel="videos">
+              <div class="account-list-row"><strong>Intro video</strong><span>Nog niet toegevoegd</span><button type="button" data-demo-save>Uploaden</button></div>
+              <p>Video's worden eerst gecontroleerd voordat ze live zichtbaar zijn.</p>
+            </article>
+            <article class="settings-card advertiser-card" data-account-panel="credits">
               <div class="package-row"><span>Basis advertentie</span><strong>Actief</strong><button type="button" data-demo-save>Beheren</button></div>
               <div class="package-row"><span>Premium vitrin</span><strong>€149 / 30 dagen</strong><button type="button" data-demo-save>Activeren</button></div>
               <div class="package-row"><span>Veilingpositie</span><strong>Niet actief</strong><button type="button" data-demo-save>Bieden</button></div>
             </article>
-            <article class="settings-card advertiser-card" data-account-panel="payments">
+            <article class="settings-card advertiser-card" data-account-panel="invoices">
               <div class="mini-table">
-                <div><span>Beschikbaar saldo</span><strong>€${a.balance || 100}</strong></div>
-                <div><span>HE Coin</span><strong>${a.wallet || 0}</strong></div>
-                <div><span>Laatste betaling</span><strong>Demo checkout voorbereid</strong></div>
+                <div><span>Laatste factuur</span><strong>Geen open factuur</strong></div>
+                <div><span>Betaalmethode</span><strong>iDEAL / kaart voorbereid</strong></div>
+                <div><span>Saldo</span><strong>€${a.balance || 100}</strong></div>
               </div>
               <button class="settings-save" type="button" data-open-wallet>Betaalpagina openen</button>
             </article>
@@ -1026,7 +1052,7 @@
             </div>
             <button class="settings-save" data-demo-save>Wijzigingen opslaan</button>
           </article>
-          <article class="settings-card" data-account-panel="${isAdvertiser ? "settings" : "notifications"}">
+          <article class="settings-card" data-account-panel="notifications">
             <p>Bepaal hoe vaak je updates, favorieten en profielmeldingen ontvangt.</p>
             <div class="message-list compact">${activityRows(activity.notifications)}</div>
             <div class="settings-radios">
@@ -1220,7 +1246,15 @@
       event.preventDefault();
       openAccountPanel(item.dataset.accountMenu, item.textContent.trim());
     });
-    if (document.querySelector("[data-account-panel]")) openAccountPanel("settings", document.querySelector('[data-account-menu="settings"]')?.textContent.trim() || "Settings");
+    document.querySelectorAll("[data-account-jump]").forEach(item => item.addEventListener("click", event => {
+      event.preventDefault();
+      const key = item.dataset.accountJump;
+      openAccountPanel(key, document.querySelector(`[data-account-menu="${key}"]`)?.textContent.trim() || "Advertentie");
+    }));
+    if (document.querySelector("[data-account-panel]")) {
+      const first = document.querySelector("[data-account-menu].active") || document.querySelector("[data-account-menu]");
+      openAccountPanel(first?.dataset.accountMenu || "settings", first?.textContent.trim() || "Settings");
+    }
     document.querySelector(".member-menu")?.addEventListener("click", event => {
       const btn = event.target.closest("[data-member-tab]");
       if (!btn) return;
@@ -1240,8 +1274,9 @@
             name: document.getElementById("memberName")?.value.trim() || data[idx].name,
             email: document.getElementById("memberEmail")?.value.trim() || data[idx].email,
             listingTitle: document.getElementById("memberListingTitle")?.value.trim() || data[idx].listingTitle,
-            service: document.getElementById("memberService")?.value || data[idx].service,
-            city: document.getElementById("memberCity")?.value || data[idx].city,
+          service: document.getElementById("memberService")?.value || data[idx].service,
+          adTitle: document.getElementById("memberAdTitle")?.value.trim() || data[idx].adTitle,
+          city: document.getElementById("memberCity")?.value || data[idx].city,
             priceLabel: document.getElementById("memberPrice")?.value.trim() || data[idx].priceLabel,
             bio: document.getElementById("memberBio")?.value.trim() || data[idx].bio
           };
@@ -1318,6 +1353,7 @@
           email: document.getElementById("memberEmail")?.value.trim() || data[idx].email,
           listingTitle: document.getElementById("memberListingTitle")?.value.trim() || data[idx].listingTitle,
           service: document.getElementById("memberService")?.value || data[idx].service,
+          adTitle: document.getElementById("memberAdTitle")?.value.trim() || data[idx].adTitle,
           bio: document.getElementById("memberBio")?.value.trim() || data[idx].bio,
           city: document.getElementById("memberCity")?.value || data[idx].city,
           priceLabel: document.getElementById("memberPrice")?.value.trim() || data[idx].priceLabel
