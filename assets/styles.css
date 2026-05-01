@@ -3341,6 +3341,36 @@ body {
   color: #222;
   text-decoration: underline;
 }
+[data-account-panel].is-hidden {
+  display: none;
+}
+.account-list-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 10px;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #ececec;
+}
+.account-list-row:last-child {
+  border-bottom: 0;
+}
+.account-list-row span {
+  color: #666;
+  font-size: 13px;
+}
+.account-list-row button {
+  min-height: 34px;
+  border: 1px solid #1da04f;
+  background: #fff;
+  color: #17813f;
+  font-weight: 800;
+  cursor: pointer;
+}
+.account-list-row button:hover {
+  background: #1da04f;
+  color: #fff;
+}
 .advertiser-status {
   display: flex;
   justify-content: space-between;
@@ -3582,7 +3612,8 @@ body {
     padding: 16px;
   }
   .media-upload-grid,
-  .package-row {
+  .package-row,
+  .account-list-row {
     grid-template-columns: 1fr;
   }
   .advertiser-status,

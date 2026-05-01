@@ -872,6 +872,12 @@
     document.getElementById("adminLoginForm").addEventListener("submit", window.submitAdminLogin);
   }
 
+  function accountPanelKey(label, isAdvertiser) {
+    const visitor = { "Ayarlar": "settings", "Yorumlar": "reviews", "Raporlar": "reports", "Meldingen": "notifications", "Opgeslagen Zoekopdrachten": "saved" };
+    const advertiser = { "Ayarlar": "settings", "Profil": "profile", "Ilanlar": "listings", "Medya": "media", "Paketler": "packages", "Odemeler": "payments", "Mesajlar": "messages" };
+    return (isAdvertiser ? advertiser : visitor)[label] || "settings";
+  }
+
   function accountPage() {
     const a = currentAccount();
     if (!a || a.role === "admin") { location.href = "login/"; return; }
@@ -886,24 +892,24 @@
       ${s && s.needsSettingsConfirm ? settingsConfirmModal(a) : ""}
       <main class="account-settings-shell">
         <aside class="account-settings-sidebar">
-          ${settingsMenu.map((item, index) => `<a class="${index === 0 ? "active" : ""}" href="#">${item}</a>`).join("")}
+          ${settingsMenu.map((item, index) => `<a class="${index === 0 ? "active" : ""}" href="#" data-account-menu="${accountPanelKey(item, isAdvertiser)}">${item}</a>`).join("")}
           <button id="memberLogout">Uitloggen</button>
         </aside>
         <section class="account-settings-main">
-          <h1>Ayarlar</h1>
-          <article class="settings-card">
+          <h1 id="accountPanelTitle">Ayarlar</h1>
+          <article class="settings-card" data-account-panel="settings">
             <h2>Wijzig bijnaam</h2>
             <label>Nieuwe bijnaam</label>
             <input id="memberName" value="${escapeHtml(a.name || a.username)}">
             <button class="settings-save" data-demo-save>Wijzigen</button>
           </article>
-          <article class="settings-card">
+          <article class="settings-card" data-account-panel="settings">
             <h2>Voorkeurstaal</h2>
             <p>Selecteer alstublieft jouw voorkeurstaal</p>
             <select id="memberLanguage"><option>NL</option><option>TR</option><option>EN</option><option>DE</option><option>FR</option><option>ES</option></select>
           </article>
           ${isAdvertiser ? `
-            <article class="settings-card advertiser-card">
+            <article class="settings-card advertiser-card" data-account-panel="profile">
               <h2>Advertentieprofiel</h2>
               <label>Profielnaam</label>
               <input id="memberListingTitle" value="${escapeHtml(a.listingTitle || "1HappyEnd demo profiel")}">
@@ -917,7 +923,7 @@
               <textarea id="memberBio">Foto, video, prijs en beschikbaarheid kunnen hier worden voorbereid.</textarea>
               <button class="settings-save" data-demo-save>Wijzigingen opslaan</button>
             </article>
-            <article class="settings-card advertiser-card">
+            <article class="settings-card advertiser-card" data-account-panel="media">
               <h2>Media & verificatie</h2>
               <div class="advertiser-status"><span>Profielstatus</span><strong>Concept · admin controle nodig</strong></div>
               <div class="media-upload-grid">
@@ -928,13 +934,19 @@
               </div>
               <p>Media wordt in deze demo lokaal gesimuleerd. In de echte versie komt hier upload, preview en moderatie.</p>
             </article>
-            <article class="settings-card advertiser-card">
+            <article class="settings-card advertiser-card" data-account-panel="listings">
+              <h2>Mijn advertenties</h2>
+              <div class="account-list-row"><strong>1HappyEnd demo profiel</strong><span>Concept</span><button type="button" data-demo-save>Bewerken</button></div>
+              <div class="account-list-row"><strong>Nieuwe advertentie</strong><span>Nog niet gepubliceerd</span><button type="button" data-demo-save>Aanmaken</button></div>
+              <p>Advertenties worden na betaling en admincontrole zichtbaar in de lijst.</p>
+            </article>
+            <article class="settings-card advertiser-card" data-account-panel="packages">
               <h2>Pakketten en zichtbaarheid</h2>
               <div class="package-row"><span>Basis advertentie</span><strong>Actief</strong><button type="button" data-demo-save>Beheren</button></div>
               <div class="package-row"><span>Premium vitrin</span><strong>€149 / 30 dagen</strong><button type="button" data-demo-save>Activeren</button></div>
               <div class="package-row"><span>Veilingpositie</span><strong>Niet actief</strong><button type="button" data-demo-save>Bieden</button></div>
             </article>
-            <article class="settings-card advertiser-card">
+            <article class="settings-card advertiser-card" data-account-panel="payments">
               <h2>Betalingen</h2>
               <div class="mini-table">
                 <div><span>Beschikbaar saldo</span><strong>€${a.balance || 100}</strong></div>
@@ -943,7 +955,7 @@
               </div>
               <button class="settings-save" type="button" data-open-wallet>Betaalpagina openen</button>
             </article>
-            <article class="settings-card advertiser-card">
+            <article class="settings-card advertiser-card" data-account-panel="messages">
               <h2>Berichten & aanvragen</h2>
               <div class="message-list compact">
                 <article><strong>Nieuwe aanvraag</strong><span>Visitor demo vraagt beschikbaarheid en prijsinformatie.</span><em>1 minuut geleden</em></article>
@@ -951,7 +963,27 @@
               </div>
             </article>
           ` : ""}
-          <article class="settings-card">
+          ${!isAdvertiser ? `
+            <article class="settings-card" data-account-panel="reviews">
+              <h2>Yorumlar</h2>
+              <div class="message-list compact">
+                <article><strong>Henüz yayınlanan yorum yok</strong><span>Demo kullanıcı yorumları burada listelenir. Canlı sistemde onay ve raporlama akışı bağlanır.</span><em>Hazır</em></article>
+                <article><strong>Bekleyen değerlendirme</strong><span>Son görüştüğünüz profiller için değerlendirme bırakma alanı.</span><em>Demo</em></article>
+              </div>
+            </article>
+            <article class="settings-card" data-account-panel="reports">
+              <h2>Raporlar</h2>
+              <p>Güvenlik, şikayet ve destek talepleri buradan takip edilir.</p>
+              <div class="account-list-row"><strong>Yeni rapor oluştur</strong><span>Destek ekibine gider</span><button type="button" data-demo-save>Başlat</button></div>
+              <div class="account-list-row"><strong>Eski raporlar</strong><span>Kayıt bulunamadı</span><button type="button" data-demo-save>Görüntüle</button></div>
+            </article>
+            <article class="settings-card" data-account-panel="saved">
+              <h2>Opgeslagen Zoekopdrachten</h2>
+              <div class="account-list-row"><strong>Amsterdam · Escort</strong><span>Günlük bildirim</span><button type="button" data-demo-save>Düzenle</button></div>
+              <div class="account-list-row"><strong>Rotterdam · Masaj</strong><span>Haftalık bildirim</span><button type="button" data-demo-save>Düzenle</button></div>
+            </article>
+          ` : ""}
+          <article class="settings-card" data-account-panel="${isAdvertiser ? "messages" : "settings"}">
             <h2>Berichtenbox</h2>
             <p>Via de berichtenbox kun je veilig contact onderhouden binnen 1HappyEnd. In de demo wordt dit lokaal opgeslagen.</p>
             <label class="settings-toggle"><input type="checkbox" checked><span></span><b>De berichtenbox staat aan</b></label>
@@ -964,7 +996,7 @@
             </div>
             <button class="settings-save" data-demo-save>Wijzigingen opslaan</button>
           </article>
-          <article class="settings-card">
+          <article class="settings-card" data-account-panel="${isAdvertiser ? "settings" : "notifications"}">
             <h2>Meldingen</h2>
             <p>Bepaal hoe vaak je updates, favorieten en profielmeldingen ontvangt.</p>
             <div class="settings-radios">
@@ -975,21 +1007,21 @@
             </div>
             <button class="settings-save" data-demo-save>Wijzigingen opslaan</button>
           </article>
-          <article class="settings-card">
+          <article class="settings-card" data-account-panel="settings">
             <h2>Wachtwoord wijzigen</h2>
             <label>Oude wachtwoord</label><input type="password">
             <label>Nieuwe wachtwoord</label><input type="password">
             <label>Herhaal nieuwe wachtwoord</label><input type="password">
             <button class="settings-save" data-demo-save>Wijzigen</button>
           </article>
-          <article class="settings-card">
+          <article class="settings-card" data-account-panel="settings">
             <h2>E-mailadres wijzigen</h2>
             <p>Na wijziging wordt een bevestigingslink naar het nieuwe adres gestuurd.</p>
             <label>Nieuw e-mailadres</label>
             <input id="memberEmail" type="email" value="${escapeHtml(a.email || "")}">
             <button class="settings-save" data-demo-save>Wijzigen</button>
           </article>
-          <article class="settings-card danger">
+          <article class="settings-card danger" data-account-panel="settings">
             <h2>Account verwijderen</h2>
             <p>Demo ortamında hesap silme işlemi yalnızca örnek akış olarak gösterilir.</p>
             <a href="#" data-demo-save>Verwijderen hesabını tıklayın</a>
@@ -1145,6 +1177,20 @@
   }
 
   function bindMemberDashboard() {
+    const openAccountPanel = (key, label) => {
+      document.querySelectorAll("[data-account-menu]").forEach(item => item.classList.toggle("active", item.dataset.accountMenu === key));
+      document.querySelectorAll("[data-account-panel]").forEach(item => item.classList.toggle("is-hidden", item.dataset.accountPanel !== key));
+      const title = document.getElementById("accountPanelTitle");
+      if (title) title.textContent = label || document.querySelector(`[data-account-menu="${key}"]`)?.textContent || "Ayarlar";
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    };
+    document.querySelector(".account-settings-sidebar")?.addEventListener("click", event => {
+      const item = event.target.closest("[data-account-menu]");
+      if (!item) return;
+      event.preventDefault();
+      openAccountPanel(item.dataset.accountMenu, item.textContent.trim());
+    });
+    if (document.querySelector("[data-account-panel]")) openAccountPanel("settings", "Ayarlar");
     document.querySelector(".member-menu")?.addEventListener("click", event => {
       const btn = event.target.closest("[data-member-tab]");
       if (!btn) return;
