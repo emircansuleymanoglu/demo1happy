@@ -310,7 +310,7 @@
     return `
       <header class="classic-header">
         <div class="classic-mainbar">
-          <a class="classic-brand" href="${prefix}index.html" aria-label="1HappyEnd"><img src="${prefix}assets/brand/old-logo-light.png" alt="1HappyEnd"></a>
+          <a class="classic-brand" href="${prefix}index.html" aria-label="1HappyEnd"><img src="${prefix}assets/brand/logo.png" alt="1HappyEnd"></a>
           <div class="classic-search">
             <input id="topSearchInput" placeholder="${t("searchPlaceholder")}">
             <select id="topCategorySelect">
@@ -841,7 +841,7 @@
     root.innerHTML = `
       <main class="classic-login-page admin-login-page">
         <section class="classic-login-card">
-          <a class="admin-login-logo" href="../../index.html"><img src="../../assets/brand/old-logo-light.png" alt="1HappyEnd"></a>
+          <a class="admin-login-logo" href="../../index.html"><img src="../../assets/brand/logo.png" alt="1HappyEnd"></a>
           <h1>${t("adminLoginTitle")}</h1>
           <p class="classic-login-copy">${t("adminLoginCopy")}</p>
           <p class="classic-demo-note">Demo: admin / 123456</p>
@@ -1124,7 +1124,7 @@
       <div class="settings-confirm-backdrop" id="settingsConfirm">
         <section class="settings-confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="settingsConfirmTitle">
           <header>
-            <img src="../assets/brand/old-logo-light.png" alt="1HappyEnd">
+            <img src="../assets/brand/logo.png" alt="1HappyEnd">
             <span>NL</span>
           </header>
           <div class="settings-confirm-body">

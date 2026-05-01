@@ -4310,35 +4310,35 @@ a {
 
 /* Logo polish */
 .classic-mainbar {
-  min-height: 64px;
+  min-height: 86px;
 }
 .classic-brand {
-  flex-basis: 138px !important;
+  flex-basis: 200px !important;
 }
 .classic-brand img {
-  width: 138px !important;
-  max-height: 56px !important;
-  filter: drop-shadow(0 3px 5px rgba(0,0,0,.22));
+  width: 200px !important;
+  max-height: 78px !important;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,.28));
 }
 @media (max-width: 900px) {
   .classic-mainbar {
-    min-height: 62px;
+    min-height: 76px;
   }
   .classic-brand {
-    flex-basis: 124px !important;
+    flex-basis: 168px !important;
   }
   .classic-brand img {
-    width: 124px !important;
-    max-height: 52px !important;
+    width: 168px !important;
+    max-height: 66px !important;
   }
 }
 @media (max-width: 420px) {
   .classic-brand {
-    flex-basis: 112px !important;
+    flex-basis: 140px !important;
   }
   .classic-brand img {
-    width: 112px !important;
-    max-height: 48px !important;
+    width: 140px !important;
+    max-height: 56px !important;
   }
 }
 
