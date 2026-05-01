@@ -4838,3 +4838,684 @@ a {
   .he-topbar-inner { flex-wrap: wrap; gap: 8px; padding: 8px 14px; }
   .he-top-link { padding: 4px 8px; font-size: 12px; }
 }
+
+
+/* ============================================================
+   RESPONSIVE OVERHAUL — mobile/tablet polish (final pass)
+   Fixes the cramped search bar where the magnifier was glued
+   to the category dropdown / Filtreler link, and tightens the
+   rest of the layout (header, tabs, cards, dashboards, footer)
+   for phones (≤480px) and tablets (≤900px / ≤1100px).
+   ============================================================ */
+
+/* ---- Search bar layout on tablet/mobile ------------------- */
+@media (max-width: 1100px) and (min-width: 901px) {
+  /* Tablet landscape: keep classic flex layout, but ensure
+     comfortable spacing between dropdown / search button / filtreler */
+  .classic-search {
+    width: 100%;
+    flex-basis: 100%;
+    max-width: none;
+    flex-wrap: wrap;
+    column-gap: 0;
+    row-gap: 8px;
+  }
+  .classic-search input {
+    flex: 1 1 100%;
+    width: 100%;
+    height: 38px !important;
+    min-height: 38px;
+    border: 1px solid #d6d6d6 !important;
+    border-radius: 4px;
+    padding: 0 12px;
+  }
+  .classic-search select {
+    flex: 1 1 220px;
+    height: 38px !important;
+    min-height: 38px;
+    border: 1px solid #d6d6d6 !important;
+    border-radius: 4px 0 0 4px !important;
+    border-right: 0 !important;
+  }
+  .classic-search button {
+    flex: 0 0 56px;
+    width: 56px !important;
+    height: 38px !important;
+    border-radius: 0 !important;
+    background: var(--classic-green);
+  }
+  .classic-search a#topFilterToggle,
+  .classic-search > a {
+    flex: 0 0 auto;
+    height: 38px;
+    min-height: 38px;
+    margin-left: 12px !important;
+    padding: 0 16px;
+    display: inline-flex;
+    align-items: center;
+    color: #fff !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .classic-search {
+    grid-template-columns: minmax(0, 1fr) 56px;
+    grid-template-rows: 40px 40px;
+    row-gap: 8px;
+    column-gap: 8px;
+  }
+  .classic-search input {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    height: 40px !important;
+    min-height: 40px;
+  }
+  .classic-search select {
+    display: block !important;
+    grid-column: 1 / 2 !important;
+    grid-row: 2 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 40px !important;
+    min-height: 40px;
+    border: 1px solid #d6d6d6 !important;
+    border-radius: 4px !important;
+    padding: 0 10px;
+    background: #fff;
+  }
+  .classic-search button {
+    grid-column: 2 / 3 !important;
+    grid-row: 2 !important;
+    width: 56px !important;
+    height: 40px !important;
+    min-height: 40px;
+    border-radius: 4px !important;
+    background: var(--classic-green);
+    color: #fff;
+    font-size: 18px;
+  }
+  .classic-search a#topFilterToggle,
+  .classic-search a {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    grid-column: 1 / -1 !important;
+    grid-row: 3 !important;
+    width: 100% !important;
+    min-height: 40px !important;
+    margin: 4px 0 0 !important;
+    padding: 0 14px !important;
+    border: 1px solid rgba(255,255,255,.4) !important;
+    border-left: 1px solid rgba(255,255,255,.4) !important;
+    border-radius: 4px !important;
+    background: rgba(255,255,255,.12) !important;
+    color: #fff !important;
+    font-weight: 700 !important;
+    font-size: 14px !important;
+    text-decoration: none !important;
+    white-space: nowrap;
+  }
+  .classic-search a#topFilterToggle:hover,
+  .classic-search a:hover {
+    background: rgba(255,255,255,.2) !important;
+  }
+  /* Adjust search grid to add the extra row for the filter button */
+  .classic-search {
+    grid-template-rows: 40px 40px 40px !important;
+    row-gap: 8px;
+  }
+}
+
+@media (max-width: 420px) {
+  .classic-search {
+    grid-template-columns: minmax(0, 1fr) 52px !important;
+  }
+  .classic-search button {
+    width: 52px !important;
+  }
+}
+
+/* ---- Header / topbar polish on mobile --------------------- */
+@media (max-width: 900px) {
+  .classic-mainbar {
+    grid-template-columns: auto minmax(0, 1fr) !important;
+    column-gap: 10px !important;
+    row-gap: 10px !important;
+    padding: 10px 14px !important;
+    min-height: 0 !important;
+  }
+  .classic-actions {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 10px !important;
+  }
+  .classic-actions a,
+  .classic-actions .language-control {
+    flex: 0 0 auto;
+  }
+}
+
+@media (max-width: 640px) {
+  .classic-mainbar {
+    grid-template-columns: 1fr !important;
+    text-align: left;
+  }
+  .classic-brand {
+    grid-column: 1 / -1 !important;
+    justify-content: flex-start;
+  }
+  .classic-actions {
+    grid-column: 1 / -1 !important;
+    justify-content: space-between !important;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .classic-actions::-webkit-scrollbar { display: none; }
+  .classic-actions a {
+    font-size: 13px !important;
+    padding: 0;
+  }
+  .classic-actions .language-control {
+    margin-left: auto;
+    min-width: 96px !important;
+  }
+}
+
+@media (max-width: 420px) {
+  .classic-actions a[data-support] span,
+  .classic-actions a[data-support] {
+    /* keep visible but compact */
+    font-size: 12px !important;
+  }
+  .classic-brand {
+    flex-basis: 124px !important;
+  }
+  .classic-brand img {
+    width: 124px !important;
+    max-height: 48px !important;
+  }
+}
+
+/* ---- Tabs strip: keep on one scrollable row --------------- */
+@media (max-width: 900px) {
+  .classic-tabs {
+    overflow: hidden;
+  }
+  .classic-tabs nav {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    gap: 18px !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding: 0 14px !important;
+  }
+  .classic-tabs nav::-webkit-scrollbar { display: none; }
+  .classic-tabs nav a {
+    flex: 0 0 auto;
+    white-space: nowrap !important;
+    height: 42px;
+    line-height: 42px;
+    font-size: 14px;
+  }
+  .classic-tabs nav a.webcam {
+    margin-left: 12px !important;
+  }
+}
+
+/* ---- Promo / wallet / section head ------------------------ */
+@media (max-width: 900px) {
+  .classic-promo {
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 8px 12px !important;
+  }
+  .classic-promo div {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .classic-promo div strong {
+    display: inline-block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .wallet-strip {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .section-head {
+    align-items: stretch !important;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .section-head .view-tools {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 8px;
+    width: 100%;
+    justify-content: stretch;
+  }
+  .section-head .view-tools .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* ---- Listings cards: full-width single column on small ---- */
+@media (max-width: 900px) {
+  .listings {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+  .card {
+    grid-template-columns: 1fr !important;
+    min-height: 0 !important;
+  }
+  .card-media {
+    width: 100% !important;
+    aspect-ratio: 16 / 10 !important;
+    min-height: clamp(180px, 50vw, 280px) !important;
+    height: auto !important;
+  }
+  .card-body {
+    padding: 14px !important;
+  }
+  .card-actions {
+    grid-template-columns: 1fr !important;
+    gap: 8px;
+  }
+  .card-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* ---- Filters block (sidebar) on small screens ------------- */
+@media (max-width: 900px) {
+  .market-layout {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+  .filters {
+    grid-template-columns: 1fr !important;
+    position: static !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+  .filters .chips {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  .quick-links-box,
+  .advanced-filter-box {
+    padding: 14px !important;
+  }
+  .filter-buttons {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .filters .chips {
+    grid-template-columns: 1fr !important;
+  }
+  .filter-buttons {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ---- Side column (right rail) hidden on tablet/phone ------ */
+@media (max-width: 1100px) {
+  .side-column {
+    display: none !important;
+  }
+}
+
+/* ---- Footer: stacked on phone --------------------------- */
+@media (max-width: 900px) {
+  .classic-footer .footer-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 0 !important;
+    padding: 18px 14px 12px !important;
+  }
+  .classic-footer section {
+    min-height: auto;
+    padding: 18px 12px;
+    border-left: 0 !important;
+    border-top: 1px solid #333;
+  }
+  .classic-footer section:nth-child(-n+2) {
+    border-top: 0;
+  }
+  .classic-footer .footer-bottom {
+    flex-direction: column;
+    gap: 10px;
+    padding: 14px 14px;
+    text-align: center;
+  }
+}
+
+@media (max-width: 540px) {
+  .classic-footer .footer-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .classic-footer section {
+    padding: 16px 8px !important;
+    border-top: 1px solid #2a2a2a !important;
+  }
+  .classic-footer section:first-child {
+    border-top: 0 !important;
+  }
+}
+
+/* ---- Login / register pages ------------------------------ */
+@media (max-width: 1100px) {
+  .classic-login-page {
+    grid-template-columns: 1fr !important;
+    gap: 18px !important;
+    padding: 28px 16px 36px !important;
+  }
+  .classic-login-card {
+    min-height: 0 !important;
+    padding: 32px 24px !important;
+  }
+  .classic-register-panel {
+    padding: 0 !important;
+  }
+}
+
+@media (max-width: 540px) {
+  .classic-login-page {
+    padding: 18px 12px 30px !important;
+  }
+  .classic-login-card {
+    padding: 22px 16px !important;
+  }
+  .classic-form-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .classic-submit,
+  .classic-outline {
+    width: 100%;
+  }
+}
+
+/* ---- Member / account dashboard -------------------------- */
+@media (max-width: 1100px) {
+  .member-shell {
+    padding: 18px 14px 40px !important;
+  }
+  .member-hero {
+    grid-template-columns: 1fr !important;
+    padding: 18px !important;
+  }
+  .member-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .member-menu {
+    position: static !important;
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto;
+    gap: 6px;
+    padding: 8px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .member-menu::-webkit-scrollbar { display: none; }
+  .member-menu button {
+    flex: 0 0 auto;
+    min-width: max-content;
+    border: 1px solid #eee;
+    border-bottom: 1px solid #eee !important;
+  }
+  .member-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 540px) {
+  .member-shell {
+    padding: 14px 10px 30px !important;
+  }
+  .member-hero h1 {
+    font-size: 22px;
+  }
+  .member-stats {
+    grid-template-columns: 1fr !important;
+  }
+  .member-form {
+    grid-template-columns: 1fr !important;
+  }
+  .compact-packages {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ---- Account settings page ------------------------------- */
+@media (max-width: 1024px) {
+  .account-settings-shell {
+    grid-template-columns: 1fr !important;
+    padding: 0 14px 36px !important;
+    gap: 12px !important;
+  }
+  .account-settings-sidebar {
+    position: static !important;
+    display: flex !important;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 12px;
+    min-height: 0 !important;
+    padding: 12px 14px !important;
+    -webkit-overflow-scrolling: touch;
+  }
+  .account-settings-sidebar::-webkit-scrollbar { display: none; }
+  .account-settings-sidebar a,
+  .account-settings-sidebar button {
+    flex: 0 0 auto;
+    min-width: max-content;
+  }
+  .account-settings-main {
+    grid-column: 1 !important;
+    padding-top: 16px !important;
+  }
+  .settings-card {
+    padding: 16px !important;
+  }
+  .media-upload-grid,
+  .package-row {
+    grid-template-columns: 1fr !important;
+  }
+  .advertiser-status,
+  .mini-table div {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  .advertiser-status strong {
+    text-align: left;
+  }
+}
+
+/* ---- Settings confirm modal on phone --------------------- */
+@media (max-width: 540px) {
+  .settings-confirm-backdrop {
+    padding: 10px !important;
+    align-items: flex-start !important;
+    overflow-y: auto !important;
+  }
+  .settings-confirm-dialog {
+    width: 100% !important;
+  }
+  .settings-confirm-dialog header span {
+    right: 12px;
+    font-size: 12px;
+  }
+  .settings-confirm-body {
+    padding: 22px 18px 12px !important;
+  }
+  .settings-confirm-body h2 {
+    font-size: 22px !important;
+  }
+  .settings-confirm-dialog footer {
+    grid-template-columns: 1fr !important;
+    gap: 10px;
+    padding: 10px 18px 16px !important;
+  }
+}
+
+/* ---- Legal/cookie consent gate on phone ------------------ */
+@media (max-width: 640px) {
+  .legal-gate {
+    place-items: stretch;
+    padding: 0 !important;
+  }
+  .legal-dialog {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: 100vh;
+    max-height: 100vh;
+    border-radius: 0;
+    border: 0;
+  }
+  .legal-close {
+    position: absolute !important;
+    top: 8px !important;
+    right: 12px !important;
+  }
+  .legal-actions {
+    grid-template-columns: 1fr !important;
+    gap: 8px;
+  }
+  .legal-settings {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ---- Advertiser HE dashboard topbar/sidebar -------------- */
+@media (max-width: 980px) {
+  .he-topbar-inner {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    padding: 8px 14px !important;
+  }
+  .he-topbar-spacer {
+    flex: 0 0 auto !important;
+  }
+  .he-balance,
+  .he-cart-btn,
+  .he-top-logout {
+    height: 34px;
+  }
+  .he-shell {
+    grid-template-columns: 1fr !important;
+  }
+  .he-sidebar {
+    position: static !important;
+    border-right: 0 !important;
+    border-bottom: 1px solid #e6e6e6 !important;
+    max-height: none !important;
+    padding: 8px 0 !important;
+  }
+  .he-side-nav {
+    flex-direction: row !important;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .he-side-nav::-webkit-scrollbar { display: none; }
+  .he-side-link {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    border-left: 0 !important;
+    border-bottom: 3px solid transparent;
+    padding: 10px 14px;
+  }
+  .he-side-link.active {
+    border-left: 0 !important;
+    border-bottom-color: #df2f45 !important;
+  }
+  .he-main {
+    padding: 16px 14px 30px !important;
+  }
+  .he-card {
+    padding: 16px !important;
+  }
+  .he-grid-2,
+  .he-checkgrid,
+  .he-prices,
+  .he-extras,
+  .he-contact-row,
+  .he-package-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .he-hours-row {
+    grid-template-columns: 50px 1fr 16px 1fr !important;
+  }
+  .he-hours-row .he-check.inline {
+    grid-column: 1 / -1 !important;
+  }
+  .he-wizard-tabs {
+    flex-wrap: wrap !important;
+  }
+  .he-wizard-tabs li {
+    flex-basis: 50% !important;
+    padding: 10px 12px !important;
+    font-size: 12px !important;
+  }
+  .he-msg {
+    grid-template-columns: 1fr !important;
+    gap: 4px !important;
+  }
+  .he-msg em {
+    text-align: left !important;
+  }
+  .he-card.he-hero {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+  }
+}
+
+@media (max-width: 540px) {
+  .he-top-link span {
+    display: none;
+  }
+  .he-cart-items li {
+    grid-template-columns: 1fr !important;
+    gap: 4px;
+  }
+  .he-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .he-photo-grid {
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)) !important;
+  }
+  .he-preview-card {
+    grid-template-columns: 76px 1fr !important;
+    gap: 10px;
+  }
+  .he-preview-photo {
+    width: 76px;
+    height: 76px;
+    font-size: 28px;
+  }
+}
+
+/* ---- Generic safety: prevent horizontal page scroll ------ */
+html, body {
+  overflow-x: hidden;
+}
+img, video, iframe {
+  max-width: 100%;
+  height: auto;
+}
+
+/* ---- Cards/listings: never overflow gutter --------------- */
+.shell, .member-shell, .account-settings-shell, .he-shell {
+  max-width: 100%;
+}
