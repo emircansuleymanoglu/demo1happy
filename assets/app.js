@@ -946,7 +946,9 @@
           <article class="settings-card" data-account-panel="settings">
             <h2>Voorkeurstaal</h2>
             <p>Selecteer alstublieft jouw voorkeurstaal</p>
-            <select id="memberLanguage"><option>NL</option><option>TR</option><option>EN</option><option>DE</option><option>FR</option><option>ES</option></select>
+            <select id="memberLanguage">
+              ${[["nl", "NL"], ["tr", "TR"], ["en", "EN"], ["de", "DE"], ["fr", "FR"], ["es", "ES"]].map(([code, label]) => `<option value="${code}" ${lang() === code ? "selected" : ""}>${label}</option>`).join("")}
+            </select>
           </article>
           ${isAdvertiser ? `
             <article class="settings-card advertiser-card" data-account-panel="profile">
@@ -1252,6 +1254,20 @@
       }
       toast("Wijzigingen opgeslagen.");
     }));
+    document.getElementById("memberLanguage")?.addEventListener("change", event => {
+      localStorage.setItem(languageKey, event.target.value);
+      const a = currentAccount();
+      if (a) {
+        const data = accounts();
+        const idx = data.findIndex(account => account.username === a.username && account.role === a.role);
+        if (idx >= 0) {
+          data[idx] = { ...data[idx], preferredLanguage: event.target.value };
+          saveAccounts(data);
+        }
+      }
+      toast("Taalvoorkeur opgeslagen.");
+      setTimeout(() => location.reload(), 350);
+    });
     document.querySelector("[data-add-report]")?.addEventListener("click", event => {
       event.preventDefault();
       const a = currentAccount();
