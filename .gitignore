@@ -8,3 +8,12 @@ Account aanmaken*.html
 Account aanmaken*_files/
 De prostitutie*.html
 De prostitutie*_files/
+-e 
+# Environment and credential files
+.env
+.env.*
+*.env
+credentials.json
+*.pem
+*.key
+.credentials
