@@ -1,7 +1,7 @@
 .chrome-*/
 old-1happyend/
 Benel*
-*.png
+/*.png
 *.rar
 *.zip
 node_modules/
