@@ -6,6 +6,7 @@
   const sessionKey = "happyend-demo-session";
   const accountsKey = "happyend-demo-accounts";
   const transactionsKey = "happyend-demo-transactions";
+  const activityKey = "happyend-demo-account-activity";
   const ageKey = "happyend-age-ok";
   const languageKey = "happyend-demo-language";
 
@@ -286,6 +287,44 @@
 
   function accounts() { return seedAccounts(); }
   function saveAccounts(items) { localStorage.setItem(accountsKey, JSON.stringify(items)); }
+  function activityId(account) { return account ? `${account.role}:${account.username}` : "guest"; }
+  function allActivity() { try { return JSON.parse(localStorage.getItem(activityKey) || "{}"); } catch (_) { return {}; } }
+  function defaultActivity(account) {
+    if (account && account.role === "advertiser") {
+      return {
+        reviews: [{ title: "Profielbeoordeling", text: "Reviews worden na publicatie en moderatie zichtbaar.", time: "Demo" }],
+        reports: [{ title: "Verificatiecontrole", text: "Admin review staat klaar voordat de advertentie live gaat.", status: "Open" }],
+        notifications: [{ title: "Profiel concept", text: "Vul media, pakket en betaling aan om live te gaan.", time: "Vandaag" }],
+        saved: [{ title: "Mijn advertentie concept", text: "1HappyEnd demo profiel", frequency: "Actief" }],
+        messages: [{ title: "Nieuwe aanvraag", text: "Visitor demo vraagt beschikbaarheid en prijsinformatie.", time: "1 minuut geleden" }]
+      };
+    }
+    return {
+      reviews: [{ title: "Bekleyen değerlendirme", text: "Son görüştüğünüz profiller için değerlendirme bırakma alanı.", time: "Demo" }],
+      reports: [{ title: "Güvenlik raporu", text: "Şikayet ve destek talepleri bu hesap altında takip edilir.", status: "Hazır" }],
+      notifications: [{ title: "Berichtenbox", text: "Yeni mesaj ve cevap bildirimleri burada görünür.", time: "Aktif" }],
+      saved: [{ title: "Amsterdam · Escort", text: "Günlük bildirim", frequency: "Günlük" }, { title: "Rotterdam · Masaj", text: "Haftalık bildirim", frequency: "Haftalık" }],
+      messages: [{ title: "Support", text: "Hesabınız demo ortamında aktif.", time: "Bugün" }]
+    };
+  }
+  function accountActivity(account) {
+    const store = allActivity();
+    const id = activityId(account);
+    if (!store[id]) {
+      store[id] = defaultActivity(account);
+      localStorage.setItem(activityKey, JSON.stringify(store));
+    }
+    return store[id];
+  }
+  function saveAccountActivity(account, activity) {
+    const store = allActivity();
+    store[activityId(account)] = activity;
+    localStorage.setItem(activityKey, JSON.stringify(store));
+  }
+  function activityRows(items, emptyText = "Kayıt bulunamadı") {
+    if (!items || !items.length) return `<article><strong>${emptyText}</strong><span>Bu alan hesabınıza bağlıdır; yeni işlem oluştuğunda otomatik görünür.</span><em>Hazır</em></article>`;
+    return items.map(item => `<article><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(item.text || item.status || item.frequency || "")}</span><em>${escapeHtml(item.time || item.status || item.frequency || "Demo")}</em></article>`).join("");
+  }
   function session() { try { return JSON.parse(localStorage.getItem(sessionKey) || "null"); } catch (_) { return null; } }
   function setSession(value) { value ? localStorage.setItem(sessionKey, JSON.stringify(value)) : localStorage.removeItem(sessionKey); }
   function currentAccount() { const s = session(); return s ? accounts().find(a => a.username === s.username && a.role === s.role) : null; }
@@ -883,6 +922,7 @@
     if (!a || a.role === "admin") { location.href = "login/"; return; }
     const s = session();
     const isAdvertiser = a.role === "advertiser";
+    const activity = accountActivity(a);
     const settingsMenu = isAdvertiser
       ? ["Ayarlar", "Profil", "Ilanlar", "Medya", "Paketler", "Odemeler", "Mesajlar"]
       : ["Ayarlar", "Yorumlar", "Raporlar", "Meldingen", "Opgeslagen Zoekopdrachten"];
@@ -958,8 +998,8 @@
             <article class="settings-card advertiser-card" data-account-panel="messages">
               <h2>Berichten & aanvragen</h2>
               <div class="message-list compact">
-                <article><strong>Nieuwe aanvraag</strong><span>Visitor demo vraagt beschikbaarheid en prijsinformatie.</span><em>1 minuut geleden</em></article>
-                <article><strong>Support</strong><span>Verificatie en advertentiecontrole staan klaar voor admin review.</span><em>Vandaag</em></article>
+                ${activityRows(activity.messages)}
+                ${activityRows(activity.notifications.slice(0, 1))}
               </div>
             </article>
           ` : ""}
@@ -967,20 +1007,19 @@
             <article class="settings-card" data-account-panel="reviews">
               <h2>Yorumlar</h2>
               <div class="message-list compact">
-                <article><strong>Henüz yayınlanan yorum yok</strong><span>Demo kullanıcı yorumları burada listelenir. Canlı sistemde onay ve raporlama akışı bağlanır.</span><em>Hazır</em></article>
-                <article><strong>Bekleyen değerlendirme</strong><span>Son görüştüğünüz profiller için değerlendirme bırakma alanı.</span><em>Demo</em></article>
+                ${activityRows(activity.reviews)}
               </div>
             </article>
             <article class="settings-card" data-account-panel="reports">
               <h2>Raporlar</h2>
               <p>Güvenlik, şikayet ve destek talepleri buradan takip edilir.</p>
-              <div class="account-list-row"><strong>Yeni rapor oluştur</strong><span>Destek ekibine gider</span><button type="button" data-demo-save>Başlat</button></div>
-              <div class="account-list-row"><strong>Eski raporlar</strong><span>Kayıt bulunamadı</span><button type="button" data-demo-save>Görüntüle</button></div>
+              <div class="message-list compact">${activityRows(activity.reports)}</div>
+              <div class="account-list-row"><strong>Yeni rapor oluştur</strong><span>Destek ekibine gider ve Meldingen alanına bildirim düşer</span><button type="button" data-add-report>Başlat</button></div>
             </article>
             <article class="settings-card" data-account-panel="saved">
               <h2>Opgeslagen Zoekopdrachten</h2>
-              <div class="account-list-row"><strong>Amsterdam · Escort</strong><span>Günlük bildirim</span><button type="button" data-demo-save>Düzenle</button></div>
-              <div class="account-list-row"><strong>Rotterdam · Masaj</strong><span>Haftalık bildirim</span><button type="button" data-demo-save>Düzenle</button></div>
+              ${activity.saved.map(item => `<div class="account-list-row"><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(item.text || item.frequency)}</span><button type="button" data-demo-save>Düzenle</button></div>`).join("")}
+              <div class="account-list-row"><strong>Yeni arama kaydet</strong><span>Arama ve bildirimlere bağlanır</span><button type="button" data-add-saved>Kaydet</button></div>
             </article>
           ` : ""}
           <article class="settings-card" data-account-panel="${isAdvertiser ? "messages" : "settings"}">
@@ -999,6 +1038,7 @@
           <article class="settings-card" data-account-panel="${isAdvertiser ? "settings" : "notifications"}">
             <h2>Meldingen</h2>
             <p>Bepaal hoe vaak je updates, favorieten en profielmeldingen ontvangt.</p>
+            <div class="message-list compact">${activityRows(activity.notifications)}</div>
             <div class="settings-radios">
               <label><input type="radio" name="notfreq" checked> Bij iedere melding</label>
               <label><input type="radio" name="notfreq"> Maximaal 1 keer per dag</label>
@@ -1220,6 +1260,32 @@
       }
       toast("Wijzigingen opgeslagen.");
     }));
+    document.querySelector("[data-add-report]")?.addEventListener("click", event => {
+      event.preventDefault();
+      const a = currentAccount();
+      if (!a) return;
+      const activity = accountActivity(a);
+      const stamp = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      activity.reports.unshift({ title: "Yeni güvenlik raporu", text: "Demo rapor destek ekibine iletildi.", status: "Open" });
+      activity.notifications.unshift({ title: "Rapor oluşturuldu", text: "Yeni raporunuz Raporlar ve Meldingen alanına bağlandı.", time: stamp });
+      saveAccountActivity(a, activity);
+      toast("Rapor oluşturuldu ve Meldingen alanına bağlandı.");
+      accountPage();
+      setTimeout(() => document.querySelector('[data-account-menu="reports"]')?.click(), 40);
+    });
+    document.querySelector("[data-add-saved]")?.addEventListener("click", event => {
+      event.preventDefault();
+      const a = currentAccount();
+      if (!a) return;
+      const activity = accountActivity(a);
+      const count = activity.saved.length + 1;
+      activity.saved.unshift({ title: `Yeni demo arama ${count}`, text: "Kaydedildi · günlük bildirim", frequency: "Günlük" });
+      activity.notifications.unshift({ title: "Arama kaydedildi", text: "Kaydedilen arama bildirimlere bağlandı.", time: "Az önce" });
+      saveAccountActivity(a, activity);
+      toast("Arama kaydedildi ve Meldingen alanına bağlandı.");
+      accountPage();
+      setTimeout(() => document.querySelector('[data-account-menu="saved"]')?.click(), 40);
+    });
     document.querySelector("[data-settings-logout]")?.addEventListener("click", () => { setSession(null); location.href = "../index.html"; });
     document.querySelector("[data-settings-continue]")?.addEventListener("click", () => {
       const terms = document.getElementById("confirmTerms");
