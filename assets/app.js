@@ -8,13 +8,13 @@
   const transactionsKey = "happyend-demo-transactions";
   const ageKey = "happyend-age-ok";
   const languageKey = "happyend-demo-language";
-  const advInvoicesKey = "happyend-adv-invoices";
-  const advMutationsKey = "happyend-adv-mutations";
-  const advMessagesKey = "happyend-adv-messages";
-  const advReviewsKey = "happyend-adv-reviews";
-  const advNotiKey = "happyend-adv-notifications";
-  const advPhotosKey = "happyend-adv-photos";
-  const advListingKey = "happyend-adv-listing";
+  const advInvoicesKey = "happyend-he-invoices";
+  const advMutationsKey = "happyend-he-mutations";
+  const advMessagesKey = "happyend-he-messages";
+  const advReviewsKey = "happyend-he-reviews";
+  const advNotiKey = "happyend-he-notifications";
+  const advPhotosKey = "happyend-he-photos";
+  const advListingKey = "happyend-he-listing";
 
   function readJSON(key, fallback) { try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch { return fallback; } }
   function writeJSON(key, value) { localStorage.setItem(key, JSON.stringify(value)); }
@@ -1324,21 +1324,21 @@
   }
 
   function advSidebar(active) {
-    const item = (key, label, d) => `<a href="#!${key}" class="adv-side-link${key === active ? " active" : ""}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="${d}"/></svg><span>${label}</span></a>`;
+    const item = (key, label, d) => `<a href="#!${key}" class="he-side-link${key === active ? " active" : ""}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="${d}"/></svg><span>${label}</span></a>`;
     return advNav.map(group => `
-      ${group.group ? `<div class="adv-side-group">${group.group}</div>` : ""}
-      <nav class="adv-side-nav">${group.items.map(([k, l, d]) => item(k, l, d)).join("")}</nav>
-    `).join("") + `<button class="adv-side-logout" id="advLogout" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 4h7v16h-7M14 12H3m0 0 4-4m-4 4 4 4"/></svg><span>Çıkış</span></button>`;
+      ${group.group ? `<div class="he-side-group">${group.group}</div>` : ""}
+      <nav class="he-side-nav">${group.items.map(([k, l, d]) => item(k, l, d)).join("")}</nav>
+    `).join("") + `<button class="he-side-logout" id="advLogout" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 4h7v16h-7M14 12H3m0 0 4-4m-4 4 4 4"/></svg><span>Çıkış</span></button>`;
   }
 
   function advWizardTabs(step) {
     const labels = ["Advertentie", "Doğrulama", "Promosyon", "Akkoord"];
     return `
-      <ol class="adv-wizard-tabs">
+      <ol class="he-wizard-tabs">
         ${labels.map((label, i) => `
           <li class="${i + 1 === step ? "active" : i + 1 < step ? "done" : ""}">
-            <span class="adv-step-num">${i + 1}</span>
-            <span class="adv-step-label">${label}</span>
+            <span class="he-step-num">${i + 1}</span>
+            <span class="he-step-label">${label}</span>
           </li>
         `).join("")}
       </ol>
@@ -1346,11 +1346,11 @@
   }
 
   function advWizardActions(step, total) {
-    const prev = step > 1 ? `<a class="adv-btn ghost" href="#!${["advertentie","fotos","promotie","akkoord"][step - 2] || "advertentie"}">Önceki adım</a>` : `<span></span>`;
+    const prev = step > 1 ? `<a class="he-btn ghost" href="#!${["advertentie","fotos","promotie","akkoord"][step - 2] || "advertentie"}">Önceki adım</a>` : `<span></span>`;
     const next = step < total
-      ? `<button type="submit" class="adv-btn primary">Sonraki adım</button>`
-      : `<button type="button" class="adv-btn primary" data-adv-akkoord>Akkoord ver</button>`;
-    return `<footer class="adv-wizard-actions">${prev}${next}</footer>`;
+      ? `<button type="submit" class="he-btn primary">Sonraki adım</button>`
+      : `<button type="button" class="he-btn primary" data-he-akkoord>Akkoord ver</button>`;
+    return `<footer class="he-wizard-actions">${prev}${next}</footer>`;
   }
 
   function advPanelAdvertentie(a) {
@@ -1364,94 +1364,94 @@
     const days = [["Pzt", "mon"], ["Sal", "tue"], ["Çar", "wed"], ["Per", "thu"], ["Cum", "fri"], ["Cmt", "sat"], ["Paz", "sun"]];
     const times = Array.from({ length: 24 }, (_, i) => `${String(i).padStart(2, "0")}:00`);
     return `
-      <form class="adv-form" id="advAdvertentieForm">
+      <form class="he-form" id="advAdvertentieForm">
         ${advWizardTabs(1)}
-        <section class="adv-card">
-          <h2 class="adv-title-red">İlan kategorisi</h2>
-          <div class="adv-tip">İlanınız aşağıda seçtiğiniz kategorilerde listelenir. En fazla 3 kategori önerilir.</div>
-          <div class="adv-checkgrid">
-            ${services.map((svc, i) => `<label class="adv-check"><input type="checkbox" name="advCategory" value="${escapeHtml(svc)}" ${i < 2 ? "checked" : ""}><span>${svc}</span></label>`).join("")}
+        <section class="he-card">
+          <h2 class="he-title-red">İlan kategorisi</h2>
+          <div class="he-tip">İlanınız aşağıda seçtiğiniz kategorilerde listelenir. En fazla 3 kategori önerilir.</div>
+          <div class="he-checkgrid">
+            ${services.map((svc, i) => `<label class="he-check"><input type="checkbox" name="advCategory" value="${escapeHtml(svc)}" ${i < 2 ? "checked" : ""}><span>${svc}</span></label>`).join("")}
           </div>
         </section>
 
-        <section class="adv-card">
-          <h2 class="adv-title-red">İlan adı ve açıklama</h2>
-          <label class="adv-label">İlan adı <small>maksimum 25 karakter</small></label>
-          <input class="adv-input" id="advName" maxlength="25" value="${escapeHtml(a.listingTitle || "1HappyEnd Premium")}" placeholder="Örn. Luna Premium">
-          <label class="adv-label">İlan başlığı</label>
-          <input class="adv-input" id="advHeadline" maxlength="60" value="${escapeHtml(a.headline || "Doğrulanmış profil · 18+ uyumlu")}">
-          <label class="adv-label">Açıklama</label>
-          <textarea class="adv-textarea" id="advAbout" rows="6" placeholder="Profilinizi tanıtın...">${escapeHtml(a.bio || "Sakin, güvenli ve özenli randevu deneyimi. Doğrulanmış profil, net fiyat bilgisi ve hızlı iletişim.")}</textarea>
+        <section class="he-card">
+          <h2 class="he-title-red">İlan adı ve açıklama</h2>
+          <label class="he-label">İlan adı <small>maksimum 25 karakter</small></label>
+          <input class="he-input" id="advName" maxlength="25" value="${escapeHtml(a.listingTitle || "1HappyEnd Premium")}" placeholder="Örn. Luna Premium">
+          <label class="he-label">İlan başlığı</label>
+          <input class="he-input" id="advHeadline" maxlength="60" value="${escapeHtml(a.headline || "Doğrulanmış profil · 18+ uyumlu")}">
+          <label class="he-label">Açıklama</label>
+          <textarea class="he-textarea" id="advAbout" rows="6" placeholder="Profilinizi tanıtın...">${escapeHtml(a.bio || "Sakin, güvenli ve özenli randevu deneyimi. Doğrulanmış profil, net fiyat bilgisi ve hızlı iletişim.")}</textarea>
         </section>
 
-        <section class="adv-card">
-          <h2 class="adv-title-red">Çalışma saatleri</h2>
-          <div class="adv-hours">
+        <section class="he-card">
+          <h2 class="he-title-red">Çalışma saatleri</h2>
+          <div class="he-hours">
             ${days.map(([label, key]) => `
-              <div class="adv-hours-row">
-                <span class="adv-hours-day">${label}</span>
-                <select class="adv-input" data-day="${key}-from">${times.map(t => `<option ${t === "10:00" ? "selected" : ""}>${t}</option>`).join("")}</select>
-                <span class="adv-hours-sep">—</span>
-                <select class="adv-input" data-day="${key}-to">${times.map(t => `<option ${t === "22:00" ? "selected" : ""}>${t}</option>`).join("")}</select>
-                <label class="adv-check inline"><input type="checkbox" data-day-allday="${key}"><span>24 saat</span></label>
+              <div class="he-hours-row">
+                <span class="he-hours-day">${label}</span>
+                <select class="he-input" data-day="${key}-from">${times.map(t => `<option ${t === "10:00" ? "selected" : ""}>${t}</option>`).join("")}</select>
+                <span class="he-hours-sep">—</span>
+                <select class="he-input" data-day="${key}-to">${times.map(t => `<option ${t === "22:00" ? "selected" : ""}>${t}</option>`).join("")}</select>
+                <label class="he-check inline"><input type="checkbox" data-day-allday="${key}"><span>24 saat</span></label>
               </div>
             `).join("")}
           </div>
         </section>
 
-        <section class="adv-card">
-          <h2 class="adv-title-red">Tarifeler</h2>
-          <div class="adv-prices">
+        <section class="he-card">
+          <h2 class="he-title-red">Tarifeler</h2>
+          <div class="he-prices">
             ${[["30 dk", 90], ["1 saat", 180], ["2 saat", 320], ["Gece", 900], ["Outcall ek", 50]].map(([label, value], i) => `
-              <label class="adv-price">
+              <label class="he-price">
                 <span>${label}</span>
-                <div class="adv-price-input"><em>€</em><input class="adv-input" type="number" value="${value}" data-price="${i}"></div>
+                <div class="he-price-input"><em>€</em><input class="he-input" type="number" value="${value}" data-price="${i}"></div>
               </label>
             `).join("")}
           </div>
         </section>
 
-        <section class="adv-card">
-          <h2 class="adv-title-red">Ek hizmetler</h2>
-          <div class="adv-tip">Sunduğunuz ek hizmetleri seçin. İsterseniz her biri için ek ücret belirleyin.</div>
-          <div class="adv-extras">
+        <section class="he-card">
+          <h2 class="he-title-red">Ek hizmetler</h2>
+          <div class="he-tip">Sunduğunuz ek hizmetleri seçin. İsterseniz her biri için ek ücret belirleyin.</div>
+          <div class="he-extras">
             ${extras.map((ex, i) => `
-              <div class="adv-extra-row">
-                <label class="adv-check"><input type="checkbox" data-extra="${i}"><span>${ex}</span></label>
-                <div class="adv-extra-charge"><em>€</em><input class="adv-input small" type="number" placeholder="Ek" data-extra-charge="${i}"></div>
+              <div class="he-extra-row">
+                <label class="he-check"><input type="checkbox" data-extra="${i}"><span>${ex}</span></label>
+                <div class="he-extra-charge"><em>€</em><input class="he-input small" type="number" placeholder="Ek" data-extra-charge="${i}"></div>
               </div>
             `).join("")}
           </div>
         </section>
 
-        <section class="adv-card">
-          <h2 class="adv-title-red">İletişim bilgileri</h2>
-          <div class="adv-grid-2">
-            <label class="adv-label">Ülke kodu
-              <select class="adv-input"><option>+31 (NL)</option><option>+32 (BE)</option><option>+49 (DE)</option><option>+90 (TR)</option></select>
+        <section class="he-card">
+          <h2 class="he-title-red">İletişim bilgileri</h2>
+          <div class="he-grid-2">
+            <label class="he-label">Ülke kodu
+              <select class="he-input"><option>+31 (NL)</option><option>+32 (BE)</option><option>+49 (DE)</option><option>+90 (TR)</option></select>
             </label>
-            <label class="adv-label">Posta kodu
-              <input class="adv-input" placeholder="1012 AB">
+            <label class="he-label">Posta kodu
+              <input class="he-input" placeholder="1012 AB">
             </label>
-            <label class="adv-label">Şehir
-              <select class="adv-input">${cities.map(c => `<option ${c === a.city ? "selected" : ""}>${c}</option>`).join("")}</select>
+            <label class="he-label">Şehir
+              <select class="he-input">${cities.map(c => `<option ${c === a.city ? "selected" : ""}>${c}</option>`).join("")}</select>
             </label>
-            <label class="adv-label">Adres notu (opsiyonel)
-              <input class="adv-input" placeholder="Sadece doğrulanmış üyelere gösterilir">
+            <label class="he-label">Adres notu (opsiyonel)
+              <input class="he-input" placeholder="Sadece doğrulanmış üyelere gösterilir">
             </label>
           </div>
-          <h3 class="adv-subtitle">İletişim yöntemleri</h3>
-          <div class="adv-contact-row">
+          <h3 class="he-subtitle">İletişim yöntemleri</h3>
+          <div class="he-contact-row">
             ${[["Telefon", "phoneCall"], ["WhatsApp", "whatsapp"], ["Signal", "signal"], ["Telegram", "telegram"], ["SMS", "sms"], ["1HappyEnd mesajı", "heMessage"]].map(([label, key], i) => `
-              <label class="adv-toggle">
+              <label class="he-toggle">
                 <input type="checkbox" data-contact="${key}" ${i < 2 ? "checked" : ""}>
-                <span class="adv-toggle-track"></span>
-                <span class="adv-toggle-label">${label}</span>
+                <span class="he-toggle-track"></span>
+                <span class="he-toggle-label">${label}</span>
               </label>
             `).join("")}
           </div>
-          <h3 class="adv-subtitle">E-posta bildirim sıklığı</h3>
-          <div class="adv-radios">
+          <h3 class="he-subtitle">E-posta bildirim sıklığı</h3>
+          <div class="he-radios">
             <label><input type="radio" name="advFreq" checked> Her yeni mesajda</label>
             <label><input type="radio" name="advFreq"> Günde en fazla 1 kere</label>
             <label><input type="radio" name="advFreq"> Haftada en fazla 1 kere</label>
@@ -1459,74 +1459,74 @@
           </div>
         </section>
 
-        <section class="adv-card">
-          <h2 class="adv-title-red">Kişisel bilgiler</h2>
-          <div class="adv-grid-2">
-            <fieldset class="adv-fieldset">
+        <section class="he-card">
+          <h2 class="he-title-red">Kişisel bilgiler</h2>
+          <div class="he-grid-2">
+            <fieldset class="he-fieldset">
               <legend>Cinsiyet</legend>
-              ${["Kadın", "Erkek", "Çift", "Trans Kadın"].map((v, i) => `<label class="adv-check inline"><input type="radio" name="advGender" ${i === 0 ? "checked" : ""}><span>${v}</span></label>`).join("")}
+              ${["Kadın", "Erkek", "Çift", "Trans Kadın"].map((v, i) => `<label class="he-check inline"><input type="radio" name="advGender" ${i === 0 ? "checked" : ""}><span>${v}</span></label>`).join("")}
             </fieldset>
-            <fieldset class="adv-fieldset">
+            <fieldset class="he-fieldset">
               <legend>Yönelim</legend>
-              ${["Heteroseksüel", "Biseksüel", "Lezbiyen", "Queer"].map((v, i) => `<label class="adv-check inline"><input type="radio" name="advOri" ${i === 0 ? "checked" : ""}><span>${v}</span></label>`).join("")}
+              ${["Heteroseksüel", "Biseksüel", "Lezbiyen", "Queer"].map((v, i) => `<label class="he-check inline"><input type="radio" name="advOri" ${i === 0 ? "checked" : ""}><span>${v}</span></label>`).join("")}
             </fieldset>
-            <label class="adv-label">Doğum tarihi
-              <div class="adv-date">
-                <select class="adv-input">${Array.from({length:31},(_,i)=>`<option>${i+1}</option>`).join("")}</select>
-                <select class="adv-input">${["Oca","Şub","Mar","Nis","May","Haz","Tem","Ağu","Eyl","Eki","Kas","Ara"].map((m,i)=>`<option value="${i+1}">${m}</option>`).join("")}</select>
-                <select class="adv-input">${Array.from({length:60},(_,i)=>2007-i).map(y=>`<option>${y}</option>`).join("")}</select>
+            <label class="he-label">Doğum tarihi
+              <div class="he-date">
+                <select class="he-input">${Array.from({length:31},(_,i)=>`<option>${i+1}</option>`).join("")}</select>
+                <select class="he-input">${["Oca","Şub","Mar","Nis","May","Haz","Tem","Ağu","Eyl","Eki","Kas","Ara"].map((m,i)=>`<option value="${i+1}">${m}</option>`).join("")}</select>
+                <select class="he-input">${Array.from({length:60},(_,i)=>2007-i).map(y=>`<option>${y}</option>`).join("")}</select>
               </div>
             </label>
-            <label class="adv-label">Etnik köken
-              <select class="adv-input"><option>Avrupalı</option><option>Akdeniz</option><option>Latin</option><option>Asyalı</option><option>Afrikalı</option><option>Karışık</option></select>
+            <label class="he-label">Etnik köken
+              <select class="he-input"><option>Avrupalı</option><option>Akdeniz</option><option>Latin</option><option>Asyalı</option><option>Afrikalı</option><option>Karışık</option></select>
             </label>
-            <label class="adv-label">Konuşulan diller
-              <div class="adv-langs">
-                ${["NL","EN","DE","TR","ES","FR"].map((l,i) => `<label class="adv-check inline"><input type="checkbox" ${i<2?"checked":""}><span>${l}</span></label>`).join("")}
+            <label class="he-label">Konuşulan diller
+              <div class="he-langs">
+                ${["NL","EN","DE","TR","ES","FR"].map((l,i) => `<label class="he-check inline"><input type="checkbox" ${i<2?"checked":""}><span>${l}</span></label>`).join("")}
               </div>
             </label>
-            <label class="adv-label">Vücut tipi
-              <select class="adv-input"><option>Atletik</option><option>İnce</option><option>Kıvrımlı</option><option>BBW</option><option>Kaslı</option></select>
+            <label class="he-label">Vücut tipi
+              <select class="he-input"><option>Atletik</option><option>İnce</option><option>Kıvrımlı</option><option>BBW</option><option>Kaslı</option></select>
             </label>
-            <label class="adv-label">Saç rengi
-              <select class="adv-input"><option>Sarı</option><option>Kahverengi</option><option>Siyah</option><option>Kızıl</option><option>Renkli</option></select>
+            <label class="he-label">Saç rengi
+              <select class="he-input"><option>Sarı</option><option>Kahverengi</option><option>Siyah</option><option>Kızıl</option><option>Renkli</option></select>
             </label>
-            <label class="adv-label">Boy (cm)
-              <input class="adv-input" type="number" value="170">
+            <label class="he-label">Boy (cm)
+              <input class="he-input" type="number" value="170">
             </label>
           </div>
         </section>
 
-        <section class="adv-card">
-          <h2 class="adv-title-red">Fotoğraflar</h2>
-          <div class="adv-tip">JPG/PNG, max 6 MB. En az 3 fotoğraf öneriyoruz. Yüz fotoğrafı verifiye rozeti getirir.</div>
-          <div class="adv-photo-grid">
-            <button type="button" class="adv-photo-add" data-demo-upload>
+        <section class="he-card">
+          <h2 class="he-title-red">Fotoğraflar</h2>
+          <div class="he-tip">JPG/PNG, max 6 MB. En az 3 fotoğraf öneriyoruz. Yüz fotoğrafı verifiye rozeti getirir.</div>
+          <div class="he-photo-grid">
+            <button type="button" class="he-photo-add" data-demo-upload>
               <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
               <span>Fotoğraf ekle</span>
             </button>
-            <div class="adv-photo-slot demo">portrait-1.jpg</div>
-            <div class="adv-photo-slot demo">portrait-2.jpg</div>
-            <div class="adv-photo-slot empty">Boş</div>
+            <div class="he-photo-slot demo">portrait-1.jpg</div>
+            <div class="he-photo-slot demo">portrait-2.jpg</div>
+            <div class="he-photo-slot empty">Boş</div>
           </div>
         </section>
 
-        <section class="adv-card">
-          <h2 class="adv-title-red">İlan önizlemesi</h2>
-          <label class="adv-label">Promosyon etiketi <small>maks 15 karakter</small></label>
-          <input class="adv-input" id="advPromoSticker" maxlength="15" placeholder="Yeni · Verified">
-          <article class="adv-preview-card">
-            <div class="adv-preview-photo">${escapeHtml((a.name || a.username || "L").charAt(0).toUpperCase())}</div>
-            <div class="adv-preview-body">
+        <section class="he-card">
+          <h2 class="he-title-red">İlan önizlemesi</h2>
+          <label class="he-label">Promosyon etiketi <small>maks 15 karakter</small></label>
+          <input class="he-input" id="advPromoSticker" maxlength="15" placeholder="Yeni · Verified">
+          <article class="he-preview-card">
+            <div class="he-preview-photo">${escapeHtml((a.name || a.username || "L").charAt(0).toUpperCase())}</div>
+            <div class="he-preview-body">
               <header>
                 <strong id="advPrevName">${escapeHtml(a.listingTitle || "1HappyEnd Premium")}</strong>
-                <span class="adv-pill">Verified</span>
+                <span class="he-pill">Verified</span>
               </header>
-              <p class="adv-preview-meta">${escapeHtml(a.city || "Amsterdam")} · 28 yaş · Kadın</p>
-              <p class="adv-preview-text" id="advPrevText">${escapeHtml(a.bio || "Sakin, güvenli ve özenli randevu deneyimi.")}</p>
+              <p class="he-preview-meta">${escapeHtml(a.city || "Amsterdam")} · 28 yaş · Kadın</p>
+              <p class="he-preview-text" id="advPrevText">${escapeHtml(a.bio || "Sakin, güvenli ve özenli randevu deneyimi.")}</p>
               <footer>
                 <span>📷 4 foto</span><span>★ 4.8</span>
-                <button type="button" class="adv-btn ghost small">Hemen ara</button>
+                <button type="button" class="he-btn ghost small">Hemen ara</button>
               </footer>
             </div>
           </article>
@@ -1540,53 +1540,53 @@
   function advPanelValidatie(a) {
     const countries = ["Hollanda", "Belçika", "Almanya", "Fransa", "İspanya", "İtalya", "Türkiye", "Polonya", "Romanya", "Bulgaristan"];
     return `
-      <form class="adv-form" id="advValidatieForm">
+      <form class="he-form" id="advValidatieForm">
         ${advWizardTabs(2)}
 
-        <section class="adv-card">
-          <h2 class="adv-title-red">Numara doğrulama</h2>
-          <p class="adv-text">Telefonunuza gelecek SMS kodunu girerek numaranızı doğrulayın. Bu adım admin onayı için zorunludur.</p>
-          <div class="adv-grid-2">
-            <label class="adv-label">Ülke kodu
-              <select class="adv-input"><option>+31 (NL)</option><option>+32 (BE)</option><option>+49 (DE)</option><option>+90 (TR)</option></select>
+        <section class="he-card">
+          <h2 class="he-title-red">Numara doğrulama</h2>
+          <p class="he-text">Telefonunuza gelecek SMS kodunu girerek numaranızı doğrulayın. Bu adım admin onayı için zorunludur.</p>
+          <div class="he-grid-2">
+            <label class="he-label">Ülke kodu
+              <select class="he-input"><option>+31 (NL)</option><option>+32 (BE)</option><option>+49 (DE)</option><option>+90 (TR)</option></select>
             </label>
-            <label class="adv-label">Telefon numarası
-              <input class="adv-input" id="advPhone" placeholder="6 12 34 56 78">
+            <label class="he-label">Telefon numarası
+              <input class="he-input" id="advPhone" placeholder="6 12 34 56 78">
             </label>
           </div>
-          <button type="button" class="adv-btn outline" data-demo-save>SMS kodu gönder</button>
-          <label class="adv-label">SMS kodu
-            <input class="adv-input" placeholder="6 haneli kod" maxlength="6">
+          <button type="button" class="he-btn outline" data-demo-save>SMS kodu gönder</button>
+          <label class="he-label">SMS kodu
+            <input class="he-input" placeholder="6 haneli kod" maxlength="6">
           </label>
         </section>
 
-        <section class="adv-card">
-          <h2 class="adv-title-red">Kimlik & yaş doğrulama</h2>
-          <p class="adv-text">Aşağıdaki bilgilere göre size özel bir doğrulama listesi (kimlik, çalışma izni vb.) hazırlanır. Bu adımda mobil cihaz tavsiye edilir.</p>
-          <div class="adv-grid-2">
-            <label class="adv-label">Uyruk
-              <select class="adv-input">${countries.map(c => `<option>${c}</option>`).join("")}</select>
+        <section class="he-card">
+          <h2 class="he-title-red">Kimlik & yaş doğrulama</h2>
+          <p class="he-text">Aşağıdaki bilgilere göre size özel bir doğrulama listesi (kimlik, çalışma izni vb.) hazırlanır. Bu adımda mobil cihaz tavsiye edilir.</p>
+          <div class="he-grid-2">
+            <label class="he-label">Uyruk
+              <select class="he-input">${countries.map(c => `<option>${c}</option>`).join("")}</select>
             </label>
-            <label class="adv-label">Doğum tarihi
-              <div class="adv-date">
-                <select class="adv-input">${Array.from({length:31},(_,i)=>`<option>${i+1}</option>`).join("")}</select>
-                <select class="adv-input">${["Oca","Şub","Mar","Nis","May","Haz","Tem","Ağu","Eyl","Eki","Kas","Ara"].map((m,i)=>`<option value="${i+1}">${m}</option>`).join("")}</select>
-                <select class="adv-input">${Array.from({length:80},(_,i)=>2007-i).map(y=>`<option>${y}</option>`).join("")}</select>
+            <label class="he-label">Doğum tarihi
+              <div class="he-date">
+                <select class="he-input">${Array.from({length:31},(_,i)=>`<option>${i+1}</option>`).join("")}</select>
+                <select class="he-input">${["Oca","Şub","Mar","Nis","May","Haz","Tem","Ağu","Eyl","Eki","Kas","Ara"].map((m,i)=>`<option value="${i+1}">${m}</option>`).join("")}</select>
+                <select class="he-input">${Array.from({length:80},(_,i)=>2007-i).map(y=>`<option>${y}</option>`).join("")}</select>
               </div>
             </label>
           </div>
-          <ul class="adv-checklist">
-            <li><span class="adv-dot"></span> 18+ yaş beyanı</li>
-            <li><span class="adv-dot"></span> Kimlik fotoğrafı (ön/arka)</li>
-            <li><span class="adv-dot"></span> Selfie + tarihli kâğıt</li>
-            <li><span class="adv-dot subtle"></span> Çalışma izni (gerekiyorsa)</li>
+          <ul class="he-checklist">
+            <li><span class="he-dot"></span> 18+ yaş beyanı</li>
+            <li><span class="he-dot"></span> Kimlik fotoğrafı (ön/arka)</li>
+            <li><span class="he-dot"></span> Selfie + tarihli kâğıt</li>
+            <li><span class="he-dot subtle"></span> Çalışma izni (gerekiyorsa)</li>
           </ul>
-          <div class="adv-photo-grid">
-            <button type="button" class="adv-photo-add" data-demo-upload>
+          <div class="he-photo-grid">
+            <button type="button" class="he-photo-add" data-demo-upload>
               <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
               <span>Kimlik yükle</span>
             </button>
-            <button type="button" class="adv-photo-add" data-demo-upload>
+            <button type="button" class="he-photo-add" data-demo-upload>
               <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
               <span>Selfie yükle</span>
             </button>
@@ -1606,36 +1606,36 @@
       { id: "credits", title: "Kredi paketi", price: "€89", period: "100 kredi", desc: "Üst sıraya çık ve mesaj kredilerinde kullanılabilir bakiye.", badge: "Bakiye" }
     ];
     return `
-      <div class="adv-form">
+      <div class="he-form">
         ${advWizardTabs(3)}
 
-        <section class="adv-card">
-          <h2 class="adv-title-red">Promosyon paketi seç</h2>
-          <p class="adv-text">İlanınızın görünürlüğünü artırmak için bir paket seçin. Birden fazla paket sepete eklenebilir.</p>
-          <div class="adv-package-grid">
+        <section class="he-card">
+          <h2 class="he-title-red">Promosyon paketi seç</h2>
+          <p class="he-text">İlanınızın görünürlüğünü artırmak için bir paket seçin. Birden fazla paket sepete eklenebilir.</p>
+          <div class="he-package-grid">
             ${packages.map(p => `
-              <article class="adv-package">
-                <span class="adv-pill">${p.badge}</span>
+              <article class="he-package">
+                <span class="he-pill">${p.badge}</span>
                 <h3>${p.title}</h3>
                 <strong>${p.price} <em>· ${p.period}</em></strong>
                 <p>${p.desc}</p>
-                <button type="button" class="adv-btn outline" data-add-cart="${p.id}|${p.title}|${p.price}">Sepete ekle</button>
+                <button type="button" class="he-btn outline" data-add-cart="${p.id}|${p.title}|${p.price}">Sepete ekle</button>
               </article>
             `).join("")}
           </div>
         </section>
 
-        <section class="adv-card">
-          <h2 class="adv-title-red">Sepet</h2>
-          <div id="advCartList" class="adv-cart">
-            <div class="adv-cart-empty">Sepetiniz boş.</div>
+        <section class="he-card">
+          <h2 class="he-title-red">Sepet</h2>
+          <div id="advCartList" class="he-cart">
+            <div class="he-cart-empty">Sepetiniz boş.</div>
           </div>
-          <div class="adv-cart-total" id="advCartTotal">Toplam: €0</div>
+          <div class="he-cart-total" id="advCartTotal">Toplam: €0</div>
         </section>
 
-        <footer class="adv-wizard-actions">
-          <a class="adv-btn ghost" href="#!fotos">Önceki adım</a>
-          <a class="adv-btn primary" href="#!akkoord">Sonraki adım</a>
+        <footer class="he-wizard-actions">
+          <a class="he-btn ghost" href="#!fotos">Önceki adım</a>
+          <a class="he-btn primary" href="#!akkoord">Sonraki adım</a>
         </footer>
       </div>
     `;
@@ -1643,28 +1643,28 @@
 
   function advPanelAkkoord() {
     return `
-      <div class="adv-form">
+      <div class="he-form">
         ${advWizardTabs(4)}
 
-        <section class="adv-card">
-          <h2 class="adv-title-red">Akkoord & ödeme</h2>
-          <p class="adv-text">Aşağıdaki sepeti onaylayarak paketleri etkinleştirin. Ödeme demo akışında simüle edilir; canlıda Stripe / iDEAL / kart sağlayıcıya yönlendirilir.</p>
-          <div id="advCartListAkkoord" class="adv-cart">
-            <div class="adv-cart-empty">Sepetiniz boş. <a href="#!promotie">Promosyon paketi seçin →</a></div>
+        <section class="he-card">
+          <h2 class="he-title-red">Akkoord & ödeme</h2>
+          <p class="he-text">Aşağıdaki sepeti onaylayarak paketleri etkinleştirin. Ödeme demo akışında simüle edilir; canlıda Stripe / iDEAL / kart sağlayıcıya yönlendirilir.</p>
+          <div id="advCartListAkkoord" class="he-cart">
+            <div class="he-cart-empty">Sepetiniz boş. <a href="#!promotie">Promosyon paketi seçin →</a></div>
           </div>
-          <div class="adv-cart-total" id="advCartTotalAkkoord">Toplam: €0</div>
+          <div class="he-cart-total" id="advCartTotalAkkoord">Toplam: €0</div>
         </section>
 
-        <section class="adv-card">
-          <h2 class="adv-title-red">Onaylar</h2>
-          <label class="adv-check"><input type="checkbox" id="advAkkoordTerms"><span>Genel hüküm ve koşulları okudum, kabul ediyorum.</span></label>
-          <label class="adv-check"><input type="checkbox" id="advAkkoordAge"><span>18+ yaşında olduğumu ve gerçek bilgilerimi girdiğimi beyan ediyorum.</span></label>
-          <label class="adv-check"><input type="checkbox" id="advAkkoordRefund"><span>Geri ödeme politikasını okudum.</span></label>
+        <section class="he-card">
+          <h2 class="he-title-red">Onaylar</h2>
+          <label class="he-check"><input type="checkbox" id="advAkkoordTerms"><span>Genel hüküm ve koşulları okudum, kabul ediyorum.</span></label>
+          <label class="he-check"><input type="checkbox" id="advAkkoordAge"><span>18+ yaşında olduğumu ve gerçek bilgilerimi girdiğimi beyan ediyorum.</span></label>
+          <label class="he-check"><input type="checkbox" id="advAkkoordRefund"><span>Geri ödeme politikasını okudum.</span></label>
         </section>
 
-        <footer class="adv-wizard-actions">
-          <a class="adv-btn ghost" href="#!promotie">Önceki adım</a>
-          <button type="button" class="adv-btn primary" data-adv-akkoord>Akkoord ver & ödemeye geç</button>
+        <footer class="he-wizard-actions">
+          <a class="he-btn ghost" href="#!promotie">Önceki adım</a>
+          <button type="button" class="he-btn primary" data-he-akkoord>Akkoord ver & ödemeye geç</button>
         </footer>
       </div>
     `;
@@ -1672,16 +1672,16 @@
 
   function advPanelDashboard(a) {
     return `
-      <div class="adv-form">
-        <section class="adv-card adv-hero">
+      <div class="he-form">
+        <section class="he-card he-hero">
           <div>
-            <span class="adv-eyebrow">1HappyEnd reklam veren paneli</span>
+            <span class="he-eyebrow">1HappyEnd reklam veren paneli</span>
             <h1>Hoş geldin, ${escapeHtml(a.name || a.username)}</h1>
-            <p class="adv-text">İlanınızı, doğrulamanızı, promosyon paketlerinizi ve mesajlarınızı buradan yönetebilirsiniz.</p>
+            <p class="he-text">İlanınızı, doğrulamanızı, promosyon paketlerinizi ve mesajlarınızı buradan yönetebilirsiniz.</p>
           </div>
-          <a class="adv-btn primary" href="#!advertentie">İlanı düzenle</a>
+          <a class="he-btn primary" href="#!advertentie">İlanı düzenle</a>
         </section>
-        <div class="adv-stats">
+        <div class="he-stats">
           <article><span>Bakiye</span><strong>€${a.balance || 100}</strong></article>
           <article><span>HE Coin</span><strong>${a.wallet || 0}</strong></article>
           <article><span>Profil durumu</span><strong>Concept · admin onayı</strong></article>
@@ -1689,13 +1689,13 @@
           <article><span>Yeni mesaj</span><strong>3</strong></article>
           <article><span>Aktif paket</span><strong>Basis</strong></article>
         </div>
-        <section class="adv-card">
-          <h2 class="adv-title-red">Yayın hazırlığı kontrol listesi</h2>
-          <ul class="adv-checklist">
-            <li><span class="adv-dot done"></span> İlan formu dolduruldu <a href="#!advertentie">Düzenle</a></li>
-            <li><span class="adv-dot"></span> Numara doğrulama tamamlanmadı <a href="#!doğrulama" class="muted">Devam et</a></li>
-            <li><span class="adv-dot"></span> Promosyon paketi seçilmedi <a href="#!promotie">Paketleri gör</a></li>
-            <li><span class="adv-dot subtle"></span> Akkoord onayı bekliyor</li>
+        <section class="he-card">
+          <h2 class="he-title-red">Yayın hazırlığı kontrol listesi</h2>
+          <ul class="he-checklist">
+            <li><span class="he-dot done"></span> İlan formu dolduruldu <a href="#!advertentie">Düzenle</a></li>
+            <li><span class="he-dot"></span> Numara doğrulama tamamlanmadı <a href="#!doğrulama" class="muted">Devam et</a></li>
+            <li><span class="he-dot"></span> Promosyon paketi seçilmedi <a href="#!promotie">Paketleri gör</a></li>
+            <li><span class="he-dot subtle"></span> Akkoord onayı bekliyor</li>
           </ul>
         </section>
       </div>
@@ -1705,16 +1705,16 @@
   function advPanelFotos() {
     const photos = advPhotos();
     return `
-      <div class="adv-form">
-        <section class="adv-card">
-          <h2 class="adv-title-red">Fotoğraf yönetimi</h2>
-          <p class="adv-text">Profil galerinize 20 fotoğrafa kadar yükleyebilirsiniz. Yüz fotoğrafı içeren profillere verifiye rozeti uygulanır.</p>
+      <div class="he-form">
+        <section class="he-card">
+          <h2 class="he-title-red">Fotoğraf yönetimi</h2>
+          <p class="he-text">Profil galerinize 20 fotoğrafa kadar yükleyebilirsiniz. Yüz fotoğrafı içeren profillere verifiye rozeti uygulanır.</p>
           <input type="file" id="advPhotoInput" accept="image/*" multiple style="display:none">
-          <div class="adv-photo-grid">
-            <button type="button" class="adv-photo-add" id="advPhotoAdd"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span>Yeni fotoğraf</span></button>
+          <div class="he-photo-grid">
+            <button type="button" class="he-photo-add" id="advPhotoAdd"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span>Yeni fotoğraf</span></button>
             ${photos.map((p, i) => p.startsWith("data:")
-              ? `<div class="adv-photo-slot uploaded" style="background-image:url('${p}')"><button type="button" data-photo-remove="${i}" class="adv-photo-x">×</button></div>`
-              : `<div class="adv-photo-slot demo">${escapeHtml(p)}<button type="button" data-photo-remove="${i}" class="adv-photo-x">×</button></div>`).join("")}
+              ? `<div class="he-photo-slot uploaded" style="background-image:url('${p}')"><button type="button" data-photo-remove="${i}" class="he-photo-x">×</button></div>`
+              : `<div class="he-photo-slot demo">${escapeHtml(p)}<button type="button" data-photo-remove="${i}" class="he-photo-x">×</button></div>`).join("")}
           </div>
         </section>
       </div>
@@ -1724,27 +1724,27 @@
   function advPanelReviews() {
     const reviews = advReviews();
     return `
-      <div class="adv-form">
-        <section class="adv-card">
-          <h2 class="adv-title-red">Yorumlar</h2>
-          <p class="adv-text">Üye yorumlarını burada görüntüler ve yanıtlayabilirsiniz. Şikayet varsa bayrak butonu ile destek hattına iletin.</p>
-          <div class="adv-reviews">
+      <div class="he-form">
+        <section class="he-card">
+          <h2 class="he-title-red">Yorumlar</h2>
+          <p class="he-text">Üye yorumlarını burada görüntüler ve yanıtlayabilirsiniz. Şikayet varsa bayrak butonu ile destek hattına iletin.</p>
+          <div class="he-reviews">
             ${reviews.length ? reviews.map(r => `
-              <article class="adv-review${r.flagged ? " flagged" : ""}" data-review-id="${r.id}">
+              <article class="he-review${r.flagged ? " flagged" : ""}" data-review-id="${r.id}">
                 <header>
                   <strong>${escapeHtml(r.user)}</strong>
-                  <span class="adv-stars">${"★".repeat(r.rating)}${"☆".repeat(5 - r.rating)}</span>
+                  <span class="he-stars">${"★".repeat(r.rating)}${"☆".repeat(5 - r.rating)}</span>
                   <em>${fmtRel(r.at)}</em>
                 </header>
                 <p>${escapeHtml(r.text)}</p>
-                ${r.reply ? `<div class="adv-review-reply"><strong>Yanıtınız:</strong> ${escapeHtml(r.reply)}</div>` : ""}
+                ${r.reply ? `<div class="he-review-reply"><strong>Yanıtınız:</strong> ${escapeHtml(r.reply)}</div>` : ""}
                 <footer>
-                  <button type="button" class="adv-btn ghost small" data-review-reply="${r.id}">Yanıtla</button>
-                  <button type="button" class="adv-btn ghost small" data-review-flag="${r.id}">${r.flagged ? "Bayrak kaldır" : "Bayrakla"}</button>
-                  <button type="button" class="adv-btn ghost small" data-review-remove="${r.id}">Sil</button>
+                  <button type="button" class="he-btn ghost small" data-review-reply="${r.id}">Yanıtla</button>
+                  <button type="button" class="he-btn ghost small" data-review-flag="${r.id}">${r.flagged ? "Bayrak kaldır" : "Bayrakla"}</button>
+                  <button type="button" class="he-btn ghost small" data-review-remove="${r.id}">Sil</button>
                 </footer>
               </article>
-            `).join("") : `<div class="adv-cart-empty">Henüz yorum yok.</div>`}
+            `).join("") : `<div class="he-cart-empty">Henüz yorum yok.</div>`}
           </div>
         </section>
       </div>
@@ -1753,15 +1753,15 @@
 
   function advPanelVideos() {
     return `
-      <div class="adv-form">
-        <section class="adv-card">
-          <h2 class="adv-title-red">Videolar</h2>
-          <p class="adv-text">Premium ilan paketlerinde profil video oynatma akışı açıktır. Maksimum 60 saniye, 50 MB.</p>
-          <div class="adv-photo-grid">
-            <button type="button" class="adv-photo-add" data-demo-upload><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span>Video yükle</span></button>
-            <div class="adv-photo-slot demo">profil-intro.mp4</div>
+      <div class="he-form">
+        <section class="he-card">
+          <h2 class="he-title-red">Videolar</h2>
+          <p class="he-text">Premium ilan paketlerinde profil video oynatma akışı açıktır. Maksimum 60 saniye, 50 MB.</p>
+          <div class="he-photo-grid">
+            <button type="button" class="he-photo-add" data-demo-upload><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span>Video yükle</span></button>
+            <div class="he-photo-slot demo">profil-intro.mp4</div>
           </div>
-          <p class="adv-text muted">Premium / Video promosyon paketi olmadan videolar liste sayfalarında oynatılmaz.</p>
+          <p class="he-text muted">Premium / Video promosyon paketi olmadan videolar liste sayfalarında oynatılmaz.</p>
         </section>
       </div>
     `;
@@ -1769,19 +1769,19 @@
 
   function advPanelOmhoog() {
     return `
-      <div class="adv-form">
-        <section class="adv-card">
-          <h2 class="adv-title-red">Üst sıraya çık</h2>
-          <p class="adv-text">İlanınızı seçtiğiniz kategori listesinin en üstüne 24 saatliğine sabitleyin.</p>
-          <div class="adv-grid-2">
-            <label class="adv-label">Kategori
-              <select class="adv-input"><option>Eskort</option><option>Erotik Masaj</option><option>BDSM</option></select>
+      <div class="he-form">
+        <section class="he-card">
+          <h2 class="he-title-red">Üst sıraya çık</h2>
+          <p class="he-text">İlanınızı seçtiğiniz kategori listesinin en üstüne 24 saatliğine sabitleyin.</p>
+          <div class="he-grid-2">
+            <label class="he-label">Kategori
+              <select class="he-input"><option>Eskort</option><option>Erotik Masaj</option><option>BDSM</option></select>
             </label>
-            <label class="adv-label">Süre
-              <select class="adv-input"><option>24 saat (€19)</option><option>3 gün (€49)</option><option>7 gün (€99)</option></select>
+            <label class="he-label">Süre
+              <select class="he-input"><option>24 saat (€19)</option><option>3 gün (€49)</option><option>7 gün (€99)</option></select>
             </label>
           </div>
-          <button type="button" class="adv-btn primary" data-add-cart="omhoog|Üst sıra · 24 saat|€19">Sepete ekle</button>
+          <button type="button" class="he-btn primary" data-add-cart="omhoog|Üst sıra · 24 saat|€19">Sepete ekle</button>
         </section>
       </div>
     `;
@@ -1790,16 +1790,16 @@
   function advPanelTegoed() {
     const packs = [["100 kredi", "€89"], ["250 kredi", "€199"], ["500 kredi", "€349"], ["1000 kredi", "€599"]];
     return `
-      <div class="adv-form">
-        <section class="adv-card">
-          <h2 class="adv-title-red">Kredi satın al</h2>
-          <p class="adv-text">Krediler üst sıraya çıkma, mesaj ve video promosyon adımlarında kullanılabilir.</p>
-          <div class="adv-package-grid">
+      <div class="he-form">
+        <section class="he-card">
+          <h2 class="he-title-red">Kredi satın al</h2>
+          <p class="he-text">Krediler üst sıraya çıkma, mesaj ve video promosyon adımlarında kullanılabilir.</p>
+          <div class="he-package-grid">
             ${packs.map(([title, price]) => `
-              <article class="adv-package">
+              <article class="he-package">
                 <h3>${title}</h3>
                 <strong>${price}</strong>
-                <button type="button" class="adv-btn outline" data-add-cart="kredi|${title}|${price}">Sepete ekle</button>
+                <button type="button" class="he-btn outline" data-add-cart="kredi|${title}|${price}">Sepete ekle</button>
               </article>
             `).join("")}
           </div>
@@ -1810,19 +1810,19 @@
 
   function advPanelVideoPromo() {
     return `
-      <div class="adv-form">
-        <section class="adv-card">
-          <h2 class="adv-title-red">Video promosyon</h2>
-          <p class="adv-text">Profil videonuz, anasayfada video promosyon akışında 7 gün boyunca oynatılır.</p>
-          <div class="adv-grid-2">
-            <label class="adv-label">Video seç
-              <select class="adv-input"><option>profil-intro.mp4</option></select>
+      <div class="he-form">
+        <section class="he-card">
+          <h2 class="he-title-red">Video promosyon</h2>
+          <p class="he-text">Profil videonuz, anasayfada video promosyon akışında 7 gün boyunca oynatılır.</p>
+          <div class="he-grid-2">
+            <label class="he-label">Video seç
+              <select class="he-input"><option>profil-intro.mp4</option></select>
             </label>
-            <label class="adv-label">Süre
-              <select class="adv-input"><option>7 gün (€59)</option><option>14 gün (€99)</option><option>30 gün (€179)</option></select>
+            <label class="he-label">Süre
+              <select class="he-input"><option>7 gün (€59)</option><option>14 gün (€99)</option><option>30 gün (€179)</option></select>
             </label>
           </div>
-          <button type="button" class="adv-btn primary" data-add-cart="videopromo|Video promo · 7 gün|€59">Sepete ekle</button>
+          <button type="button" class="he-btn primary" data-add-cart="videopromo|Video promo · 7 gün|€59">Sepete ekle</button>
         </section>
       </div>
     `;
@@ -1830,31 +1830,31 @@
 
   function advPanelInstellingen(a) {
     return `
-      <div class="adv-form">
-        <section class="adv-card">
-          <h2 class="adv-title-red">Hesap ayarları</h2>
-          <label class="adv-label">Görünen ad
-            <input class="adv-input" id="memberName" value="${escapeHtml(a.name || a.username)}">
+      <div class="he-form">
+        <section class="he-card">
+          <h2 class="he-title-red">Hesap ayarları</h2>
+          <label class="he-label">Görünen ad
+            <input class="he-input" id="memberName" value="${escapeHtml(a.name || a.username)}">
           </label>
-          <label class="adv-label">E-posta
-            <input class="adv-input" id="memberEmail" type="email" value="${escapeHtml(a.email || "")}">
+          <label class="he-label">E-posta
+            <input class="he-input" id="memberEmail" type="email" value="${escapeHtml(a.email || "")}">
           </label>
-          <label class="adv-label">Tercih edilen dil
-            <select class="adv-input"><option>NL</option><option>TR</option><option>EN</option><option>DE</option></select>
+          <label class="he-label">Tercih edilen dil
+            <select class="he-input"><option>NL</option><option>TR</option><option>EN</option><option>DE</option></select>
           </label>
-          <button type="button" class="adv-btn primary" data-demo-save>Değişiklikleri kaydet</button>
+          <button type="button" class="he-btn primary" data-demo-save>Değişiklikleri kaydet</button>
         </section>
-        <section class="adv-card">
-          <h2 class="adv-title-red">Şifre</h2>
-          <label class="adv-label">Mevcut şifre <input class="adv-input" type="password"></label>
-          <label class="adv-label">Yeni şifre <input class="adv-input" type="password"></label>
-          <label class="adv-label">Yeni şifre (tekrar) <input class="adv-input" type="password"></label>
-          <button type="button" class="adv-btn primary" data-demo-save>Şifreyi değiştir</button>
+        <section class="he-card">
+          <h2 class="he-title-red">Şifre</h2>
+          <label class="he-label">Mevcut şifre <input class="he-input" type="password"></label>
+          <label class="he-label">Yeni şifre <input class="he-input" type="password"></label>
+          <label class="he-label">Yeni şifre (tekrar) <input class="he-input" type="password"></label>
+          <button type="button" class="he-btn primary" data-demo-save>Şifreyi değiştir</button>
         </section>
-        <section class="adv-card danger">
-          <h2 class="adv-title-red">Hesabı sil</h2>
-          <p class="adv-text">Demo akışında hesap silme yalnızca akış olarak gösterilir.</p>
-          <button type="button" class="adv-btn outline" data-demo-save>Hesabımı sil</button>
+        <section class="he-card danger">
+          <h2 class="he-title-red">Hesabı sil</h2>
+          <p class="he-text">Demo akışında hesap silme yalnızca akış olarak gösterilir.</p>
+          <button type="button" class="he-btn outline" data-demo-save>Hesabımı sil</button>
         </section>
       </div>
     `;
@@ -1864,29 +1864,29 @@
     const msgs = advMessages();
     const totalUnread = msgs.filter(m => m.unread).length;
     return `
-      <div class="adv-form">
-        <section class="adv-card no-pad">
+      <div class="he-form">
+        <section class="he-card no-pad">
           <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px 6px">
-            <h2 class="adv-title-red" style="margin:0">Mesajlar ${totalUnread ? `<span class="adv-badge ok" style="background:#df2f45;color:#fff">${totalUnread} yeni</span>` : ""}</h2>
-            <button type="button" class="adv-btn ghost small" data-msg-mark-read>Tümünü okundu işaretle</button>
+            <h2 class="he-title-red" style="margin:0">Mesajlar ${totalUnread ? `<span class="he-badge ok" style="background:#df2f45;color:#fff">${totalUnread} yeni</span>` : ""}</h2>
+            <button type="button" class="he-btn ghost small" data-msg-mark-read>Tümünü okundu işaretle</button>
           </div>
-          <div class="adv-msg-list" id="advMsgList">
+          <div class="he-msg-list" id="advMsgList">
             ${msgs.length ? msgs.map(m => `
-              <article class="adv-msg ${m.unread ? "unread" : ""}" data-msg-id="${m.id}">
+              <article class="he-msg ${m.unread ? "unread" : ""}" data-msg-id="${m.id}">
                 <strong>${escapeHtml(m.from)}</strong>
                 <span>${escapeHtml(m.subject)}</span>
                 <em>${fmtRel(m.at)}</em>
-                <div class="adv-msg-body">
+                <div class="he-msg-body">
                   <p>${escapeHtml(m.body)}</p>
-                  ${m.replies && m.replies.length ? `<ul class="adv-msg-replies">${m.replies.map(r => `<li><strong>Siz:</strong> ${escapeHtml(r.text)} <em>${fmtRel(r.at)}</em></li>`).join("")}</ul>` : ""}
-                  <div class="adv-msg-actions">
-                    <input type="text" class="adv-input" data-msg-input="${m.id}" placeholder="Yanıt yazın...">
-                    <button type="button" class="adv-btn primary small" data-msg-reply="${m.id}">Gönder</button>
-                    <button type="button" class="adv-btn ghost small" data-msg-remove="${m.id}">Sil</button>
+                  ${m.replies && m.replies.length ? `<ul class="he-msg-replies">${m.replies.map(r => `<li><strong>Siz:</strong> ${escapeHtml(r.text)} <em>${fmtRel(r.at)}</em></li>`).join("")}</ul>` : ""}
+                  <div class="he-msg-actions">
+                    <input type="text" class="he-input" data-msg-input="${m.id}" placeholder="Yanıt yazın...">
+                    <button type="button" class="he-btn primary small" data-msg-reply="${m.id}">Gönder</button>
+                    <button type="button" class="he-btn ghost small" data-msg-remove="${m.id}">Sil</button>
                   </div>
                 </div>
               </article>
-            `).join("") : `<div class="adv-cart-empty" style="padding:24px">Henüz mesaj yok.</div>`}
+            `).join("") : `<div class="he-cart-empty" style="padding:24px">Henüz mesaj yok.</div>`}
           </div>
         </section>
       </div>
@@ -1896,22 +1896,22 @@
   function advPanelMeldingen() {
     const items = advNotifications();
     return `
-      <div class="adv-form">
-        <section class="adv-card">
+      <div class="he-form">
+        <section class="he-card">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-            <h2 class="adv-title-red" style="margin:0">Bildirimler</h2>
+            <h2 class="he-title-red" style="margin:0">Bildirimler</h2>
             <div style="display:flex;gap:8px">
-              <button type="button" class="adv-btn ghost small" data-noti-read-all>Tümünü okundu işaretle</button>
-              <button type="button" class="adv-btn ghost small" data-noti-clear>Tümünü temizle</button>
+              <button type="button" class="he-btn ghost small" data-noti-read-all>Tümünü okundu işaretle</button>
+              <button type="button" class="he-btn ghost small" data-noti-clear>Tümünü temizle</button>
             </div>
           </div>
-          <ul class="adv-noti">
+          <ul class="he-noti">
             ${items.length ? items.map(n => `
               <li class="${n.read ? "" : "unread"}" data-noti-id="${n.id}">
                 <strong>${escapeHtml(n.title)}</strong> · ${escapeHtml(n.text)} · ${fmtRel(n.at)}
-                <button type="button" class="adv-noti-x" data-noti-remove="${n.id}" title="Sil">×</button>
+                <button type="button" class="he-noti-x" data-noti-remove="${n.id}" title="Sil">×</button>
               </li>
-            `).join("") : `<li class="adv-cart-empty">Bildirim yok.</li>`}
+            `).join("") : `<li class="he-cart-empty">Bildirim yok.</li>`}
           </ul>
         </section>
       </div>
@@ -1921,10 +1921,10 @@
   function advPanelFacturen() {
     const inv = advInvoices();
     return `
-      <div class="adv-form">
-        <section class="adv-card">
-          <h2 class="adv-title-red">Faturalar</h2>
-          <table class="adv-table">
+      <div class="he-form">
+        <section class="he-card">
+          <h2 class="he-title-red">Faturalar</h2>
+          <table class="he-table">
             <thead><tr><th>No</th><th>Tarih</th><th>Açıklama</th><th>Tutar</th><th>Durum</th><th></th></tr></thead>
             <tbody>
               ${inv.length ? inv.map(r => `<tr>
@@ -1932,8 +1932,8 @@
                 <td>${fmtDate(new Date(r.date).getTime())}</td>
                 <td>${escapeHtml(r.desc)}</td>
                 <td>€${Number(r.amount).toFixed(2).replace(".", ",")}</td>
-                <td><span class="adv-badge ok">${escapeHtml(r.status)}</span></td>
-                <td><button type="button" class="adv-link-btn" data-invoice-pdf="${escapeHtml(r.id)}">PDF indir</button></td>
+                <td><span class="he-badge ok">${escapeHtml(r.status)}</span></td>
+                <td><button type="button" class="he-link-btn" data-invoice-pdf="${escapeHtml(r.id)}">PDF indir</button></td>
               </tr>`).join("") : `<tr><td colspan="6" style="text-align:center;color:#888;padding:20px">Henüz faturanız yok. <a href="#!promotie" style="color:#df2f45;font-weight:700">Paket satın alın →</a></td></tr>`}
             </tbody>
           </table>
@@ -1946,13 +1946,13 @@
     const rows = advMutations();
     const balance = rows.reduce((sum, r) => sum + Number(r.delta || 0), 0);
     return `
-      <div class="adv-form">
-        <section class="adv-card">
+      <div class="he-form">
+        <section class="he-card">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-            <h2 class="adv-title-red" style="margin:0">Bakiye hareketleri</h2>
+            <h2 class="he-title-red" style="margin:0">Bakiye hareketleri</h2>
             <strong style="font-size:18px">Güncel bakiye: ${balance} kredi</strong>
           </div>
-          <table class="adv-table">
+          <table class="he-table">
             <thead><tr><th>Hareket</th><th>Açıklama</th><th>Tarih</th></tr></thead>
             <tbody>
               ${rows.length ? rows.map(r => `<tr class="${r.sign === '+' ? 'pos' : 'neg'}">
@@ -2044,9 +2044,9 @@
   }
 
   function advCart() {
-    try { return JSON.parse(localStorage.getItem("happyend-adv-cart") || "[]"); } catch { return []; }
+    try { return JSON.parse(localStorage.getItem("happyend-he-cart") || "[]"); } catch { return []; }
   }
-  function saveAdvCart(items) { localStorage.setItem("happyend-adv-cart", JSON.stringify(items)); }
+  function saveAdvCart(items) { localStorage.setItem("happyend-he-cart", JSON.stringify(items)); }
   function priceOf(label) { const m = String(label).match(/€\s*([\d.,]+)/); return m ? Number(m[1].replace(/[^\d.]/g, "")) : 0; }
 
   function renderAdvCart() {
@@ -2054,31 +2054,31 @@
     const totalNum = items.reduce((sum, it) => sum + priceOf(it.price), 0);
     const total = `Toplam: €${totalNum.toFixed(0)}`;
     const html = items.length
-      ? `<ul class="adv-cart-items">${items.map((it, i) => `<li><strong>${escapeHtml(it.title)}</strong><span>${escapeHtml(it.price)}</span><button type="button" data-cart-remove="${i}">×</button></li>`).join("")}</ul>`
-      : `<div class="adv-cart-empty">Sepetiniz boş.</div>`;
+      ? `<ul class="he-cart-items">${items.map((it, i) => `<li><strong>${escapeHtml(it.title)}</strong><span>${escapeHtml(it.price)}</span><button type="button" data-cart-remove="${i}">×</button></li>`).join("")}</ul>`
+      : `<div class="he-cart-empty">Sepetiniz boş.</div>`;
     document.getElementById("advCartList") && (document.getElementById("advCartList").innerHTML = html);
-    document.getElementById("advCartListAkkoord") && (document.getElementById("advCartListAkkoord").innerHTML = items.length ? html : `<div class="adv-cart-empty">Sepetiniz boş. <a href="#!promotie">Promosyon paketi seçin →</a></div>`);
+    document.getElementById("advCartListAkkoord") && (document.getElementById("advCartListAkkoord").innerHTML = items.length ? html : `<div class="he-cart-empty">Sepetiniz boş. <a href="#!promotie">Promosyon paketi seçin →</a></div>`);
     document.getElementById("advCartTotal") && (document.getElementById("advCartTotal").textContent = total);
     document.getElementById("advCartTotalAkkoord") && (document.getElementById("advCartTotalAkkoord").textContent = total);
   }
 
   function advTopBar(a) {
     return `
-      <div class="adv-topbar">
-        <div class="adv-topbar-inner">
-          <a class="adv-brand" href="../">
+      <div class="he-topbar">
+        <div class="he-topbar-inner">
+          <a class="he-brand" href="../">
             <img src="../assets/brand/logo.png" alt="1HappyEnd">
           </a>
-          <div class="adv-topbar-spacer"></div>
-          <a class="adv-top-link" href="#!berichten">Müşteri hizmetleri</a>
-          <a class="adv-top-link active" href="#!dashboard">Hesabım</a>
-          <span class="adv-balance" title="Bakiye">€${(a.balance || 100).toFixed(2).replace(".", ",")}</span>
-          <a class="adv-cart-btn" href="#!akkoord" id="advCartBtn">
+          <div class="he-topbar-spacer"></div>
+          <a class="he-top-link" href="#!berichten">Müşteri hizmetleri</a>
+          <a class="he-top-link active" href="#!dashboard">Hesabım</a>
+          <span class="he-balance" title="Bakiye">€${(a.balance || 100).toFixed(2).replace(".", ",")}</span>
+          <a class="he-cart-btn" href="#!akkoord" id="advCartBtn">
             <svg viewBox="0 0 24 24"><path d="M3 5h2l3 11h11l2-8H7"/><circle cx="9" cy="20" r="1.5"/><circle cx="17" cy="20" r="1.5"/></svg>
-            <span class="adv-cart-count" id="advCartCount">0</span>
+            <span class="he-cart-count" id="advCartCount">0</span>
           </a>
-          <select class="adv-lang"><option>NL</option><option>TR</option><option>EN</option><option>DE</option></select>
-          <button class="adv-top-logout" id="advTopLogout" title="Çıkış"><svg viewBox="0 0 24 24"><path d="M10 4h7v16h-7M14 12H3m0 0 4-4m-4 4 4 4"/></svg></button>
+          <select class="he-lang"><option>NL</option><option>TR</option><option>EN</option><option>DE</option></select>
+          <button class="he-top-logout" id="advTopLogout" title="Çıkış"><svg viewBox="0 0 24 24"><path d="M10 4h7v16h-7M14 12H3m0 0 4-4m-4 4 4 4"/></svg></button>
         </div>
       </div>
     `;
@@ -2094,9 +2094,9 @@
     root.innerHTML = `
       ${advTopBar(a)}
       ${s && s.needsSettingsConfirm ? settingsConfirmModal(a) : ""}
-      <main class="adv-shell">
-        <aside class="adv-sidebar">${advSidebar(activeForSidebar)}</aside>
-        <section class="adv-main">${panel}</section>
+      <main class="he-shell">
+        <aside class="he-sidebar">${advSidebar(activeForSidebar)}</aside>
+        <section class="he-main">${panel}</section>
       </main>
       ${footer()}
     `;
@@ -2250,7 +2250,7 @@
       window.__advClickBound = true;
       document.body.addEventListener("click", event => {
         const rm = event.target.closest("[data-cart-remove]");
-        const ak = event.target.closest("[data-adv-akkoord]");
+        const ak = event.target.closest("[data-he-akkoord]");
         const pdf = event.target.closest("[data-invoice-pdf]");
         const photoRm = event.target.closest("[data-photo-remove]");
         const msgReply = event.target.closest("[data-msg-reply]");
