@@ -404,7 +404,7 @@
               <option value="BDSM">BDSM</option>
             </select>
             <button type="button" id="topSearchBtn">${icons.search}</button>
-            <a href="${prefix}index.html#filters" id="topFilterToggle">${t("filters")}</a>
+            <a href="${prefix}zoeken/" id="topFilterToggle">${t("filters")}</a>
           </div>
           <nav class="classic-actions">
             <a href="${prefix}index.html#support" data-support>${icons.support} ${t("support")}</a>
@@ -891,7 +891,7 @@
         document.querySelector(".classic-login-card").scrollIntoView({ behavior: "smooth", block: "start" });
       });
     });
-    window.submitAccount = function (event) {
+    window.submitAccount = async function (event) {
       event.preventDefault();
       const username = document.getElementById("username").value.trim();
       const password = document.getElementById("password").value;
@@ -899,18 +899,58 @@
       const data = accounts();
       if (mode === "register" && role !== "admin") {
         if (!document.getElementById("adultConfirm").checked) { msg.innerHTML = `<div class="alert">${t("adultError")}</div>`; return; }
+        const email = document.getElementById("email").value.trim();
+        const name = document.getElementById("fullName").value.trim() || username;
         if (data.some(a => a.username === username)) { msg.innerHTML = `<div class="alert">${t("existsError")}</div>`; return; }
-        const account = { username, password, role, name: document.getElementById("fullName").value.trim() || username, email: document.getElementById("email").value.trim(), wallet: role === "visitor" ? 25 : 0, currency: "EUR", balance: role === "advertiser" ? 100 : 0 };
-        data.push(account); saveAccounts(data); setSession({ username, role, at: Date.now(), needsSettingsConfirm: true });
-        msg.innerHTML = `<div class="alert ok">${t("registerOk")}</div>`;
-        setTimeout(() => { location.href = "../"; }, 700);
+        const r = await window.heSignupApi({ username, email, password, role, name });
+        if (!r.ok) { msg.innerHTML = `<div class="alert">${r.error === "exists" ? t("existsError") : "Kayıt başarısız."}</div>`; return; }
+        const account = { username, password, role, name, email, wallet: role === "visitor" ? 25 : 0, currency: "EUR", balance: role === "advertiser" ? 100 : 0, emailVerified: !!r.fallback };
+        data.push(account); saveAccounts(data);
+        if (r.fallback) {
+          setSession({ username, role, at: Date.now(), needsSettingsConfirm: true });
+          msg.innerHTML = `<div class="alert ok">${t("registerOk")}</div>`;
+          setTimeout(() => { location.href = "../"; }, 700);
+        } else {
+          msg.innerHTML = `<div class="alert ok">Kayıt alındı. <b>${escapeHtml(email)}</b> adresine doğrulama bağlantısı gönderildi.${r.link ? ` <a href="${r.link}" target="_blank">Test linki</a>` : ""}</div>`;
+        }
         return;
       }
-      const found = data.find(a => (a.username === username || a.email === username) && a.password === password && a.role !== "admin");
-      if (!found) { msg.innerHTML = `<div class="alert">${t("loginError")}</div>`; return; }
-      setSession({ username: found.username, role: found.role, at: Date.now(), needsSettingsConfirm: false });
-      msg.innerHTML = `<div class="alert ok">${t("loginOk")}</div>`;
-      setTimeout(() => { location.href = "../"; }, 500);
+      const r = await window.heLoginApi(username, password);
+      if (r.fallback) {
+        const found = data.find(a => (a.username === username || a.email === username) && a.password === password && a.role !== "admin");
+        if (!found) { msg.innerHTML = `<div class="alert">${t("loginError")}</div>`; return; }
+        setSession({ username: found.username, role: found.role, at: Date.now(), needsSettingsConfirm: false });
+        msg.innerHTML = `<div class="alert ok">${t("loginOk")}</div>`;
+        setTimeout(() => { location.href = "../"; }, 500);
+        return;
+      }
+      if (r.error) {
+        if (r.status === 403) { msg.innerHTML = `<div class="alert">E-postanızı önce doğrulayın.</div>`; return; }
+        msg.innerHTML = `<div class="alert">${t("loginError")}</div>`; return;
+      }
+      if (r.requiresCode) {
+        msg.innerHTML = `
+          <div class="alert ok">E-postanıza 6 haneli giriş kodu gönderildi${r.devCode ? ` (test kodu: <b>${r.devCode}</b>)` : ""}.</div>
+          <label>Giriş kodu</label>
+          <input id="loginCodeInput" maxlength="6" inputmode="numeric" placeholder="6 haneli kod" style="letter-spacing:6px;text-align:center;font-size:18px">
+          <button type="button" class="classic-submit" id="loginCodeSubmit">Kodu doğrula</button>
+        `;
+        document.getElementById("loginCodeSubmit").addEventListener("click", async () => {
+          const code = document.getElementById("loginCodeInput").value.trim();
+          const c = await window.heLoginCodeApi(username, code);
+          if (c.error) { msg.insertAdjacentHTML("beforeend", `<div class="alert">${c.error === "expired" ? "Kod süresi dolmuş." : c.error === "wrong-code" ? "Kod hatalı." : "Doğrulama başarısız."}</div>`); return; }
+          const acct = data.find(a => a.username === c.user.username || a.email === c.user.email);
+          if (acct) { acct.emailVerified = true; saveAccounts(data); }
+          setSession({ username: c.user.username, role: c.user.role, at: Date.now(), needsSettingsConfirm: false });
+          location.href = "../";
+        });
+        return;
+      }
+      if (r.ok) {
+        setSession({ username: r.user.username, role: r.user.role, at: Date.now(), needsSettingsConfirm: false });
+        msg.innerHTML = `<div class="alert ok">${t("loginOk")}</div>`;
+        setTimeout(() => { location.href = "../"; }, 500);
+      }
       return false;
     };
     document.getElementById("accountForm").addEventListener("submit", window.submitAccount);
@@ -2490,10 +2530,124 @@
   function slug(value) { return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "ilan"; }
   function escapeHtml(value) { return String(value || "").replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[char])); }
 
+  const API = window.HE_API || (location.hostname === "localhost" || location.hostname === "127.0.0.1" ? "http://localhost:3001" : "");
+  async function api(p, body) {
+    if (!API) throw new Error("no-api");
+    const res = await fetch(API + p, { method: body ? "POST" : "GET", headers: { "Content-Type": "application/json" }, body: body ? JSON.stringify(body) : undefined });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw Object.assign(new Error(data.error || "http"), { status: res.status, data });
+    return data;
+  }
+  window.heApi = api;
+
+  function filtersPage() {
+    const sexOpts = ["El işi","Anal (klant)","Anal (condom)","Anal (zonder condom)","Anal play","Ass worship","BDSM dominant","BDSM submissive","Beffen","Bi-slave","Biseks","Body to body","Bondage","Boot worship","Breath play","Buiten sex","CBT","Candle wax","Cardate","Chatten","Cock & ball bondage","Deepthroat","Dildo show","Dinner date","Dirty talk","Electro","Erotische massage","Face check","Facesitting","Facetime","Fisting","Foto's op verzoek","GFE","Gagging","Gangbang","Geldslaven","High class","Hotel","Intiem","JOI","Kik","Klaarkomen in mond","Klaarkomen op gezicht","Kuisheidsgordel","Lak / Rubber","Lingam massage","Live verhalen","Masks","Massage met hoogtepunt","Masturberen","Mummificatie","Naalden","Neuken (condom)","Neuken (zonder condom)","Nipple torture","Nuru massage","Online femdom","Online findom","OnlyFans","Ontmaagding","Opsluiting","Penismassage","Pijpen (condom)","Pijpen (zonder condom)","Plassex","Pornoster","Prostaat massage","Publieke tentoonstelling","Rimmen","Rollenspel","SM massage","Sissyplay","Snapchat","Soft SM","Sperma slikken","Spitting","Squirting","Squirtshow","Tantra massage","Teams","Telefoon sex","Telegram","Thaise massage","Tongzoenen","Travestie","Trio m/m","Trio v/v","WhatsApp video"];
+    const langs = ["Nederlands","Engels","Duits","Frans","Spaans","Italiaans","Turks","Arabisch"];
+    const ethnics = ["Nederlands","Europees","Oost Europees","Zuid Europees","Afrikaans","Aziatisch","Zuid Amerikaans","Arabisch","Turks","Marokkaans","Amerikaans","Hindoestaans","Braziliaans","Chinees","Pools","Russisch"];
+    const bodies = ["Slank","Atletisch","Normaal","Mollig","Dik"];
+    const provs = ["Noord-Holland","Zuid-Holland","Utrecht","Noord-Brabant","Gelderland","Limburg","Flevoland","Friesland","Groningen","Drenthe","Overijssel","Zeeland"];
+    const cityList = ["Amsterdam","Rotterdam","Den Haag","Utrecht","Eindhoven","Groningen","Alkmaar","Tilburg","Almere","Arnhem","Haarlem","Nijmegen","Breda"];
+    const dist = ["5 km","10 km","25 km","50 km","100 km"];
+    const types = ["Privé ontvangst","Escort","Erotische massage","BDSM","Virtual sex","Raamprostitutie"];
+    const cb = (group, list, cols = 2) => `<div class="he-filter-grid" style="display:grid;grid-template-columns:repeat(${cols},minmax(0,1fr));gap:6px 14px">${list.map(v => `<label class="he-check"><input type="checkbox" name="${group}" value="${escapeHtml(v)}"><span>${escapeHtml(v)}</span></label>`).join("")}</div>`;
+    const sel = (id, list, ph) => `<select id="${id}" class="he-input"><option value="">${ph}</option>${list.map(v => `<option>${escapeHtml(v)}</option>`).join("")}</select>`;
+    root.innerHTML = `
+      ${header("filters")}
+      <main class="he-shell" style="grid-template-columns:1fr;max-width:1100px;background:#fff;margin:0 auto">
+        <section class="he-main" style="padding:24px 28px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+            <h1 style="margin:0;color:#df2f45">Uitgebreid zoeken</h1>
+            <a class="he-btn ghost" href="../">← Terug</a>
+          </div>
+          <form id="filtersForm" class="he-form">
+            <section class="he-card">
+              <div class="he-grid-2">
+                <label class="he-label">Zoek op naam<input id="fName" class="he-input" placeholder="Bijv. Luna"></label>
+                <label class="he-label">Zoek op titel/beschrijving<input id="fText" class="he-input" placeholder="Trefwoord"></label>
+              </div>
+            </section>
+            <section class="he-card">
+              <h2 class="he-title-red">Locatie</h2>
+              <div class="he-grid-2">
+                <label class="he-label">Land${sel("fCountry", ["Nederland","België","Duitsland"], "Alle landen")}</label>
+                <label class="he-label">Provincie${sel("fProv", provs, "Alle provincies")}</label>
+                <label class="he-label">Plaats${sel("fCity", cityList, "Alle plaatsen")}</label>
+                <label class="he-label">Afstand${sel("fDist", dist, "Alle afstanden")}</label>
+              </div>
+            </section>
+            <section class="he-card"><h2 class="he-title-red">Type date</h2>${cb("fType", types, 3)}</section>
+            <section class="he-card"><h2 class="he-title-red">Geslacht</h2>${cb("fGender", ["Vrouw","Man","Stel","Trans"], 4)}</section>
+            <section class="he-card"><h2 class="he-title-red">Gesproken talen</h2>${cb("fLang", langs, 4)}</section>
+            <section class="he-card"><h2 class="he-title-red">Afkomst</h2>${cb("fEthnic", ethnics, 4)}</section>
+            <section class="he-card"><h2 class="he-title-red">Lichaamsbouw</h2>${cb("fBody", bodies, 5)}</section>
+            <section class="he-card"><h2 class="he-title-red">Sex opties</h2>${cb("fSex", sexOpts, 3)}</section>
+            <footer class="he-wizard-actions" style="position:sticky;bottom:0;background:#fff;padding:14px 0;border-top:1px solid #eee;display:flex;justify-content:space-between">
+              <button type="reset" class="he-btn ghost">Filters resetten</button>
+              <button type="submit" class="he-btn primary">Resultaten tonen</button>
+            </footer>
+          </form>
+        </section>
+      </main>
+      ${footer()}
+    `;
+    bindGlobal();
+    document.getElementById("filtersForm").addEventListener("submit", e => {
+      e.preventDefault();
+      const params = new URLSearchParams();
+      const v = id => document.getElementById(id)?.value.trim();
+      ["fName","fText","fCountry","fProv","fCity","fDist"].forEach(id => { const x = v(id); if (x) params.set(id, x); });
+      ["fType","fGender","fLang","fEthnic","fBody","fSex"].forEach(g => {
+        const xs = Array.from(document.querySelectorAll(`input[name="${g}"]:checked`)).map(i => i.value);
+        if (xs.length) params.set(g, xs.join(","));
+      });
+      location.href = "../index.html" + (params.toString() ? "?" + params.toString() : "");
+    });
+  }
+
+  async function verifyPage() {
+    const tok = new URLSearchParams(location.search).get("token");
+    root.innerHTML = `
+      ${header("verify")}
+      <main class="he-shell" style="grid-template-columns:1fr;max-width:560px;background:#fff;margin:0 auto">
+        <section class="he-main" style="padding:40px 28px;text-align:center">
+          <h1 style="color:#df2f45">E-posta doğrulama</h1>
+          <div id="verifyMsg" class="he-text">Bekleniyor...</div>
+          <a class="he-btn primary" href="../account/login/" id="verifyGo" style="display:none;margin-top:14px">Giriş yap</a>
+        </section>
+      </main>
+      ${footer()}
+    `;
+    bindGlobal();
+    const msg = document.getElementById("verifyMsg");
+    if (!tok) { msg.textContent = "Geçersiz bağlantı."; return; }
+    try {
+      const r = await api(`/api/verify?token=${encodeURIComponent(tok)}`);
+      msg.innerHTML = `E-postanız doğrulandı (<b>${escapeHtml(r.username)}</b>). Şimdi giriş yapabilirsiniz.`;
+      document.getElementById("verifyGo").style.display = "inline-flex";
+    } catch (e) {
+      msg.textContent = e.status === 404 ? "Bağlantı geçersiz veya süresi dolmuş." : "Doğrulama başarısız (API kapalı olabilir).";
+    }
+  }
+
+  window.heSignupApi = async (form) => {
+    try { const r = await api("/api/signup", form); return { ok: true, link: r.link }; }
+    catch (e) { return e.message === "no-api" ? { ok: true, fallback: true } : { ok: false, error: e.data?.error || "signup-failed" }; }
+  };
+  window.heLoginApi = async (username, password) => {
+    try { return await api("/api/login", { username, password }); }
+    catch (e) { return e.message === "no-api" ? { fallback: true } : { error: e.data?.error || "login-failed", status: e.status }; }
+  };
+  window.heLoginCodeApi = async (username, code) => {
+    try { return await api("/api/login-code", { username, code }); }
+    catch (e) { return { error: e.data?.error || "code-failed" }; }
+  };
+
   seedAccounts();
   if (page === "login") loginPage();
   else if (page === "account") accountPage();
   else if (page === "admin-login") adminLoginPage();
   else if (page === "admin") adminPage();
+  else if (page === "zoeken") filtersPage();
+  else if (page === "verify") verifyPage();
   else homePage();
 })();
