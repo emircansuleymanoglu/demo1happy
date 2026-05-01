@@ -6,7 +6,6 @@
   const sessionKey = "happyend-demo-session";
   const accountsKey = "happyend-demo-accounts";
   const transactionsKey = "happyend-demo-transactions";
-  const activityKey = "happyend-demo-account-activity";
   const ageKey = "happyend-age-ok";
   const languageKey = "happyend-demo-language";
 
@@ -287,44 +286,6 @@
 
   function accounts() { return seedAccounts(); }
   function saveAccounts(items) { localStorage.setItem(accountsKey, JSON.stringify(items)); }
-  function activityId(account) { return account ? `${account.role}:${account.username}` : "guest"; }
-  function allActivity() { try { return JSON.parse(localStorage.getItem(activityKey) || "{}"); } catch (_) { return {}; } }
-  function defaultActivity(account) {
-    if (account && account.role === "advertiser") {
-      return {
-        reviews: [{ title: "Profielbeoordeling", text: "Reviews worden na publicatie en moderatie zichtbaar.", time: "Demo" }],
-        reports: [{ title: "Verificatiecontrole", text: "Admin review staat klaar voordat de advertentie live gaat.", status: "Open" }],
-        notifications: [{ title: "Profiel concept", text: "Vul media, pakket en betaling aan om live te gaan.", time: "Vandaag" }],
-        saved: [{ title: "Mijn advertentie concept", text: "1HappyEnd demo profiel", frequency: "Actief" }],
-        messages: [{ title: "Nieuwe aanvraag", text: "Visitor demo vraagt beschikbaarheid en prijsinformatie.", time: "1 minuut geleden" }]
-      };
-    }
-    return {
-      reviews: [{ title: "Bekleyen değerlendirme", text: "Son görüştüğünüz profiller için değerlendirme bırakma alanı.", time: "Demo" }],
-      reports: [{ title: "Güvenlik raporu", text: "Şikayet ve destek talepleri bu hesap altında takip edilir.", status: "Hazır" }],
-      notifications: [{ title: "Berichtenbox", text: "Yeni mesaj ve cevap bildirimleri burada görünür.", time: "Aktif" }],
-      saved: [{ title: "Amsterdam · Escort", text: "Günlük bildirim", frequency: "Günlük" }, { title: "Rotterdam · Masaj", text: "Haftalık bildirim", frequency: "Haftalık" }],
-      messages: [{ title: "Support", text: "Hesabınız demo ortamında aktif.", time: "Bugün" }]
-    };
-  }
-  function accountActivity(account) {
-    const store = allActivity();
-    const id = activityId(account);
-    if (!store[id]) {
-      store[id] = defaultActivity(account);
-      localStorage.setItem(activityKey, JSON.stringify(store));
-    }
-    return store[id];
-  }
-  function saveAccountActivity(account, activity) {
-    const store = allActivity();
-    store[activityId(account)] = activity;
-    localStorage.setItem(activityKey, JSON.stringify(store));
-  }
-  function activityRows(items, emptyText = "Kayıt bulunamadı") {
-    if (!items || !items.length) return `<article><strong>${emptyText}</strong><span>Bu alan hesabınıza bağlıdır; yeni işlem oluştuğunda otomatik görünür.</span><em>Hazır</em></article>`;
-    return items.map(item => `<article><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(item.text || item.status || item.frequency || "")}</span><em>${escapeHtml(item.time || item.status || item.frequency || "Demo")}</em></article>`).join("");
-  }
   function session() { try { return JSON.parse(localStorage.getItem(sessionKey) || "null"); } catch (_) { return null; } }
   function setSession(value) { value ? localStorage.setItem(sessionKey, JSON.stringify(value)) : localStorage.removeItem(sessionKey); }
   function currentAccount() { const s = session(); return s ? accounts().find(a => a.username === s.username && a.role === s.role) : null; }
@@ -349,7 +310,7 @@
     return `
       <header class="classic-header">
         <div class="classic-mainbar">
-          <a class="classic-brand" href="${prefix}index.html" aria-label="1HappyEnd"><img src="${prefix}assets/brand/logo.jpeg" alt="1HappyEnd"></a>
+          <a class="classic-brand" href="${prefix}index.html" aria-label="1HappyEnd"><img src="${prefix}assets/brand/old-logo-light.png" alt="1HappyEnd"></a>
           <div class="classic-search">
             <input id="topSearchInput" placeholder="${t("searchPlaceholder")}">
             <select id="topCategorySelect">
@@ -880,7 +841,7 @@
     root.innerHTML = `
       <main class="classic-login-page admin-login-page">
         <section class="classic-login-card">
-          <a class="admin-login-logo" href="../../index.html"><img src="../../assets/brand/logo.jpeg" alt="1HappyEnd"></a>
+          <a class="admin-login-logo" href="../../index.html"><img src="../../assets/brand/old-logo-light.png" alt="1HappyEnd"></a>
           <h1>${t("adminLoginTitle")}</h1>
           <p class="classic-login-copy">${t("adminLoginCopy")}</p>
           <p class="classic-demo-note">Demo: admin / 123456</p>
@@ -911,85 +872,53 @@
     document.getElementById("adminLoginForm").addEventListener("submit", window.submitAdminLogin);
   }
 
-  function accountPanelKey(label, isAdvertiser) {
-    const visitor = { "Settings": "settings", "Reviews": "reviews", "Messages": "messages", "Notifications": "notifications" };
-    const advertiser = { "Dashboard": "dashboard", "Advertentie": "advertentie", "Foto's": "photos", "Reviews": "reviews", "Video's": "videos", "Instellingen": "settings", "Berichten": "messages", "Meldingen": "notifications", "Facturen": "invoices", "Tegoed mutaties": "credits" };
-    return (isAdvertiser ? advertiser : visitor)[label] || "settings";
-  }
-
   function accountPage() {
     const a = currentAccount();
     if (!a || a.role === "admin") { location.href = "login/"; return; }
     const s = session();
     const isAdvertiser = a.role === "advertiser";
-    const activity = accountActivity(a);
+    if (isAdvertiser) { advertiserDashboard(a, s); return; }
     const settingsMenu = isAdvertiser
-      ? ["Dashboard", "Advertentie", "Foto's", "Reviews", "Video's", "Instellingen", "Berichten", "Meldingen", "Facturen", "Tegoed mutaties"]
-      : ["Settings", "Reviews", "Messages", "Notifications"];
-    const sidebarHtml = isAdvertiser
-      ? `<a class="active" href="#" data-account-menu="dashboard">▦ Dashboard</a><strong>Beheer</strong>${["Advertentie", "Foto's", "Reviews", "Video's"].map(item => `<a href="#" data-account-menu="${accountPanelKey(item, true)}">${item}</a>`).join("")}<strong>Account</strong>${["Instellingen", "Berichten", "Meldingen", "Facturen", "Tegoed mutaties"].map(item => `<a href="#" data-account-menu="${accountPanelKey(item, true)}">${item}</a>`).join("")}`
-      : `${settingsMenu.map((item, index) => `<a class="${index === 0 ? "active" : ""}" href="#" data-account-menu="${accountPanelKey(item, false)}">${item}</a>`).join("")}`;
+      ? ["Ayarlar", "Profil", "Ilanlar", "Medya", "Paketler", "Odemeler", "Mesajlar"]
+      : ["Ayarlar", "Yorumlar", "Raporlar", "Meldingen", "Opgeslagen Zoekopdrachten"];
     root.innerHTML = `
       ${accountVersionBanner()}
       ${header("account")}
       ${s && s.needsSettingsConfirm ? settingsConfirmModal(a) : ""}
       <main class="account-settings-shell">
         <aside class="account-settings-sidebar">
-          ${sidebarHtml}
-          <button id="memberLogout">${isAdvertiser ? "Uitloggen" : "Log out"}</button>
+          ${settingsMenu.map((item, index) => `<a class="${index === 0 ? "active" : ""}" href="#">${item}</a>`).join("")}
+          <button id="memberLogout">Uitloggen</button>
         </aside>
         <section class="account-settings-main">
-          <h1 id="accountPanelTitle">${isAdvertiser ? "Dashboard" : "Settings"}</h1>
-          <article class="settings-card" data-account-panel="settings">
+          <h1>Ayarlar</h1>
+          <article class="settings-card">
             <h2>Wijzig bijnaam</h2>
             <label>Nieuwe bijnaam</label>
             <input id="memberName" value="${escapeHtml(a.name || a.username)}">
             <button class="settings-save" data-demo-save>Wijzigen</button>
           </article>
-          <article class="settings-card" data-account-panel="settings">
+          <article class="settings-card">
             <h2>Voorkeurstaal</h2>
             <p>Selecteer alstublieft jouw voorkeurstaal</p>
-            <select id="memberLanguage">
-              ${[["nl", "NL"], ["tr", "TR"], ["en", "EN"], ["de", "DE"], ["fr", "FR"], ["es", "ES"]].map(([code, label]) => `<option value="${code}" ${lang() === code ? "selected" : ""}>${label}</option>`).join("")}
-            </select>
+            <select id="memberLanguage"><option>NL</option><option>TR</option><option>EN</option><option>DE</option><option>FR</option><option>ES</option></select>
           </article>
           ${isAdvertiser ? `
-            <article class="settings-card advertiser-card" data-account-panel="dashboard">
-              <div class="mini-table">
-                <div><span>Advertentie status</span><strong>Concept</strong></div>
-                <div><span>Profiel controle</span><strong>Validatie nodig</strong></div>
-                <div><span>Saldo</span><strong>€${a.balance || 100}</strong></div>
-              </div>
-              <button class="settings-save" type="button" data-account-jump="advertentie">Nieuwe advertentie afronden</button>
+            <article class="settings-card advertiser-card">
+              <h2>Advertentieprofiel</h2>
+              <label>Profielnaam</label>
+              <input id="memberListingTitle" value="${escapeHtml(a.listingTitle || "1HappyEnd demo profiel")}">
+              <label>Dienst</label>
+              <select id="memberService">${services.slice(1).map(svc => `<option>${svc}</option>`).join("")}</select>
+              <label>Stad</label>
+              <select id="memberCity">${cities.slice(1).map(city => `<option>${city}</option>`).join("")}</select>
+              <label>Prijsindicatie</label>
+              <input id="memberPrice" value="€180 per uur">
+              <label>Korte omschrijving</label>
+              <textarea id="memberBio">Foto, video, prijs en beschikbaarheid kunnen hier worden voorbereid.</textarea>
+              <button class="settings-save" data-demo-save>Wijzigingen opslaan</button>
             </article>
-            <article class="settings-card advertiser-card ad-create-panel" data-account-panel="advertentie">
-              <nav class="ad-steps" aria-label="Advertentie stappen">
-                <span class="active">1. Advertentie</span>
-                <span>2. Validatie</span>
-                <span>3. Promotie</span>
-                <span>4. Akkoord</span>
-              </nav>
-              <div class="ad-form">
-                <h2>Advertentie</h2>
-                <strong>Aangeboden diensten:</strong>
-                <div class="service-check-grid">
-                  ${["Prive ontvangst", "Escort", "Erotische massage", "BDSM", "Virtual sex", "Raamprostitutie"].map(label => `<label><input type="checkbox"> ${label}</label>`).join("")}
-                </div>
-                <label>Naam:<span class="char-count">0/25</span></label>
-                <input id="memberListingTitle" maxlength="25" value="${escapeHtml(a.listingTitle || "")}">
-                <label>Titel:<span class="char-count">0/50</span></label>
-                <div class="emoji-input"><span>●</span><input id="memberAdTitle" maxlength="50"></div>
-                <div class="ad-note"><strong>Emoji's (€1,09/dag) worden alleen weergegeven als je een Exclusieve advertentie hebt.</strong><p>In stap 3 kan je kiezen voor een Exclusieve advertentie.</p></div>
-                <label>Tekst:<span class="char-count">0/2000</span></label>
-                <div class="emoji-input textarea"><span>●</span><textarea id="memberBio" maxlength="2000"></textarea></div>
-                <label>Stad:</label>
-                <select id="memberCity">${cities.slice(1).map(city => `<option>${city}</option>`).join("")}</select>
-                <label>Prijsindicatie:</label>
-                <input id="memberPrice" value="€180 per uur">
-                <div class="ad-form-actions"><button class="settings-save" data-demo-save>Concept opslaan</button><button class="settings-save primary-fill" type="button" data-account-jump="photos">Volgende stap</button></div>
-              </div>
-            </article>
-            <article class="settings-card advertiser-card" data-account-panel="photos">
+            <article class="settings-card advertiser-card">
               <h2>Media & verificatie</h2>
               <div class="advertiser-status"><span>Profielstatus</span><strong>Concept · admin controle nodig</strong></div>
               <div class="media-upload-grid">
@@ -1000,46 +929,30 @@
               </div>
               <p>Media wordt in deze demo lokaal gesimuleerd. In de echte versie komt hier upload, preview en moderatie.</p>
             </article>
-            <article class="settings-card advertiser-card" data-account-panel="reviews">
-              <div class="message-list compact">${activityRows(activity.reviews)}</div>
-            </article>
-            <article class="settings-card advertiser-card" data-account-panel="videos">
-              <div class="account-list-row"><strong>Intro video</strong><span>Nog niet toegevoegd</span><button type="button" data-demo-save>Uploaden</button></div>
-              <p>Video's worden eerst gecontroleerd voordat ze live zichtbaar zijn.</p>
-            </article>
-            <article class="settings-card advertiser-card" data-account-panel="credits">
+            <article class="settings-card advertiser-card">
+              <h2>Pakketten en zichtbaarheid</h2>
               <div class="package-row"><span>Basis advertentie</span><strong>Actief</strong><button type="button" data-demo-save>Beheren</button></div>
               <div class="package-row"><span>Premium vitrin</span><strong>€149 / 30 dagen</strong><button type="button" data-demo-save>Activeren</button></div>
               <div class="package-row"><span>Veilingpositie</span><strong>Niet actief</strong><button type="button" data-demo-save>Bieden</button></div>
             </article>
-            <article class="settings-card advertiser-card" data-account-panel="invoices">
+            <article class="settings-card advertiser-card">
+              <h2>Betalingen</h2>
               <div class="mini-table">
-                <div><span>Laatste factuur</span><strong>Geen open factuur</strong></div>
-                <div><span>Betaalmethode</span><strong>iDEAL / kaart voorbereid</strong></div>
-                <div><span>Saldo</span><strong>€${a.balance || 100}</strong></div>
+                <div><span>Beschikbaar saldo</span><strong>€${a.balance || 100}</strong></div>
+                <div><span>HE Coin</span><strong>${a.wallet || 0}</strong></div>
+                <div><span>Laatste betaling</span><strong>Demo checkout voorbereid</strong></div>
               </div>
               <button class="settings-save" type="button" data-open-wallet>Betaalpagina openen</button>
             </article>
-            <article class="settings-card advertiser-card" data-account-panel="messages">
+            <article class="settings-card advertiser-card">
+              <h2>Berichten & aanvragen</h2>
               <div class="message-list compact">
-                ${activityRows(activity.messages)}
-                ${activityRows(activity.notifications.slice(0, 1))}
+                <article><strong>Nieuwe aanvraag</strong><span>Visitor demo vraagt beschikbaarheid en prijsinformatie.</span><em>1 minuut geleden</em></article>
+                <article><strong>Support</strong><span>Verificatie en advertentiecontrole staan klaar voor admin review.</span><em>Vandaag</em></article>
               </div>
             </article>
           ` : ""}
-          ${!isAdvertiser ? `
-            <article class="settings-card" data-account-panel="reviews">
-              <div class="message-list compact">
-                ${activityRows(activity.reviews)}
-              </div>
-            </article>
-            <article class="settings-card" data-account-panel="messages">
-              <div class="message-list compact">
-                ${activityRows(activity.messages)}
-              </div>
-            </article>
-          ` : ""}
-          <article class="settings-card" data-account-panel="settings">
+          <article class="settings-card">
             <h2>Berichtenbox</h2>
             <p>Via de berichtenbox kun je veilig contact onderhouden binnen 1HappyEnd. In de demo wordt dit lokaal opgeslagen.</p>
             <label class="settings-toggle"><input type="checkbox" checked><span></span><b>De berichtenbox staat aan</b></label>
@@ -1052,9 +965,9 @@
             </div>
             <button class="settings-save" data-demo-save>Wijzigingen opslaan</button>
           </article>
-          <article class="settings-card" data-account-panel="notifications">
+          <article class="settings-card">
+            <h2>Meldingen</h2>
             <p>Bepaal hoe vaak je updates, favorieten en profielmeldingen ontvangt.</p>
-            <div class="message-list compact">${activityRows(activity.notifications)}</div>
             <div class="settings-radios">
               <label><input type="radio" name="notfreq" checked> Bij iedere melding</label>
               <label><input type="radio" name="notfreq"> Maximaal 1 keer per dag</label>
@@ -1063,21 +976,21 @@
             </div>
             <button class="settings-save" data-demo-save>Wijzigingen opslaan</button>
           </article>
-          <article class="settings-card" data-account-panel="settings">
+          <article class="settings-card">
             <h2>Wachtwoord wijzigen</h2>
             <label>Oude wachtwoord</label><input type="password">
             <label>Nieuwe wachtwoord</label><input type="password">
             <label>Herhaal nieuwe wachtwoord</label><input type="password">
             <button class="settings-save" data-demo-save>Wijzigen</button>
           </article>
-          <article class="settings-card" data-account-panel="settings">
+          <article class="settings-card">
             <h2>E-mailadres wijzigen</h2>
             <p>Na wijziging wordt een bevestigingslink naar het nieuwe adres gestuurd.</p>
             <label>Nieuw e-mailadres</label>
             <input id="memberEmail" type="email" value="${escapeHtml(a.email || "")}">
             <button class="settings-save" data-demo-save>Wijzigen</button>
           </article>
-          <article class="settings-card danger" data-account-panel="settings">
+          <article class="settings-card danger">
             <h2>Account verwijderen</h2>
             <p>Demo ortamında hesap silme işlemi yalnızca örnek akış olarak gösterilir.</p>
             <a href="#" data-demo-save>Verwijderen hesabını tıklayın</a>
@@ -1211,7 +1124,7 @@
       <div class="settings-confirm-backdrop" id="settingsConfirm">
         <section class="settings-confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="settingsConfirmTitle">
           <header>
-            <img src="../assets/brand/logo.jpeg" alt="1HappyEnd">
+            <img src="../assets/brand/old-logo-light.png" alt="1HappyEnd">
             <span>NL</span>
           </header>
           <div class="settings-confirm-body">
@@ -1233,28 +1146,6 @@
   }
 
   function bindMemberDashboard() {
-    const openAccountPanel = (key, label) => {
-      document.querySelectorAll("[data-account-menu]").forEach(item => item.classList.toggle("active", item.dataset.accountMenu === key));
-      document.querySelectorAll("[data-account-panel]").forEach(item => item.classList.toggle("is-hidden", item.dataset.accountPanel !== key));
-      const title = document.getElementById("accountPanelTitle");
-      if (title) title.textContent = label || document.querySelector(`[data-account-menu="${key}"]`)?.textContent || "Ayarlar";
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    };
-    document.querySelector(".account-settings-sidebar")?.addEventListener("click", event => {
-      const item = event.target.closest("[data-account-menu]");
-      if (!item) return;
-      event.preventDefault();
-      openAccountPanel(item.dataset.accountMenu, item.textContent.trim());
-    });
-    document.querySelectorAll("[data-account-jump]").forEach(item => item.addEventListener("click", event => {
-      event.preventDefault();
-      const key = item.dataset.accountJump;
-      openAccountPanel(key, document.querySelector(`[data-account-menu="${key}"]`)?.textContent.trim() || "Advertentie");
-    }));
-    if (document.querySelector("[data-account-panel]")) {
-      const first = document.querySelector("[data-account-menu].active") || document.querySelector("[data-account-menu]");
-      openAccountPanel(first?.dataset.accountMenu || "settings", first?.textContent.trim() || "Settings");
-    }
     document.querySelector(".member-menu")?.addEventListener("click", event => {
       const btn = event.target.closest("[data-member-tab]");
       if (!btn) return;
@@ -1274,9 +1165,8 @@
             name: document.getElementById("memberName")?.value.trim() || data[idx].name,
             email: document.getElementById("memberEmail")?.value.trim() || data[idx].email,
             listingTitle: document.getElementById("memberListingTitle")?.value.trim() || data[idx].listingTitle,
-          service: document.getElementById("memberService")?.value || data[idx].service,
-          adTitle: document.getElementById("memberAdTitle")?.value.trim() || data[idx].adTitle,
-          city: document.getElementById("memberCity")?.value || data[idx].city,
+            service: document.getElementById("memberService")?.value || data[idx].service,
+            city: document.getElementById("memberCity")?.value || data[idx].city,
             priceLabel: document.getElementById("memberPrice")?.value.trim() || data[idx].priceLabel,
             bio: document.getElementById("memberBio")?.value.trim() || data[idx].bio
           };
@@ -1285,46 +1175,6 @@
       }
       toast("Wijzigingen opgeslagen.");
     }));
-    document.getElementById("memberLanguage")?.addEventListener("change", event => {
-      localStorage.setItem(languageKey, event.target.value);
-      const a = currentAccount();
-      if (a) {
-        const data = accounts();
-        const idx = data.findIndex(account => account.username === a.username && account.role === a.role);
-        if (idx >= 0) {
-          data[idx] = { ...data[idx], preferredLanguage: event.target.value };
-          saveAccounts(data);
-        }
-      }
-      toast("Taalvoorkeur opgeslagen.");
-      setTimeout(() => location.reload(), 350);
-    });
-    document.querySelector("[data-add-report]")?.addEventListener("click", event => {
-      event.preventDefault();
-      const a = currentAccount();
-      if (!a) return;
-      const activity = accountActivity(a);
-      const stamp = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-      activity.reports.unshift({ title: "Yeni güvenlik raporu", text: "Demo rapor destek ekibine iletildi.", status: "Open" });
-      activity.notifications.unshift({ title: "Rapor oluşturuldu", text: "Yeni raporunuz Raporlar ve Meldingen alanına bağlandı.", time: stamp });
-      saveAccountActivity(a, activity);
-      toast("Rapor oluşturuldu ve Meldingen alanına bağlandı.");
-      accountPage();
-      setTimeout(() => document.querySelector('[data-account-menu="reports"]')?.click(), 40);
-    });
-    document.querySelector("[data-add-saved]")?.addEventListener("click", event => {
-      event.preventDefault();
-      const a = currentAccount();
-      if (!a) return;
-      const activity = accountActivity(a);
-      const count = activity.saved.length + 1;
-      activity.saved.unshift({ title: `Yeni demo arama ${count}`, text: "Kaydedildi · günlük bildirim", frequency: "Günlük" });
-      activity.notifications.unshift({ title: "Arama kaydedildi", text: "Kaydedilen arama bildirimlere bağlandı.", time: "Az önce" });
-      saveAccountActivity(a, activity);
-      toast("Arama kaydedildi ve Meldingen alanına bağlandı.");
-      accountPage();
-      setTimeout(() => document.querySelector('[data-account-menu="saved"]')?.click(), 40);
-    });
     document.querySelector("[data-settings-logout]")?.addEventListener("click", () => { setSession(null); location.href = "../index.html"; });
     document.querySelector("[data-settings-continue]")?.addEventListener("click", () => {
       const terms = document.getElementById("confirmTerms");
@@ -1353,7 +1203,6 @@
           email: document.getElementById("memberEmail")?.value.trim() || data[idx].email,
           listingTitle: document.getElementById("memberListingTitle")?.value.trim() || data[idx].listingTitle,
           service: document.getElementById("memberService")?.value || data[idx].service,
-          adTitle: document.getElementById("memberAdTitle")?.value.trim() || data[idx].adTitle,
           bio: document.getElementById("memberBio")?.value.trim() || data[idx].bio,
           city: document.getElementById("memberCity")?.value || data[idx].city,
           priceLabel: document.getElementById("memberPrice")?.value.trim() || data[idx].priceLabel
@@ -1362,6 +1211,794 @@
         toast("Üyelik bilgileri kaydedildi.");
       }
     });
+  }
+
+  const advNav = [
+    { group: "", items: [["dashboard", "Dashboard", "M3 12 12 4l9 8v8a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1Z"]] },
+    { group: "Beheer", items: [
+      ["advertentie", "Advertentie", "M4 5h16v3H4zM4 11h16v3H4zM4 17h10v3H4z"],
+      ["fotos", "Foto's", "M4 6h16v12H4zM8 13l3-3 3 3 3-4 2 3v3H6v-2z"],
+      ["reviews", "Reviews", "M12 3l2.5 5.5 6 .6-4.5 4 1.4 5.9L12 16l-5.4 3 1.4-5.9-4.5-4 6-.6Z"],
+      ["videos", "Video's", "M3 6h13v12H3zM17 9l4-2v10l-4-2z"]
+    ]},
+    { group: "Promotie", items: [
+      ["promotie", "Promotie merkezi", "M4 13l5-5 4 4 7-7v6h-2V8.4l-5 5-4-4-3 3z"],
+      ["omhoog", "Üst sıraya çık", "M12 4l6 6h-4v8h-4v-8H6z"],
+      ["tegoed", "Kredi satın al", "M3 6h18v12H3zM3 10h18M7 15h4"],
+      ["videopromotie", "Video promosyon", "M4 6h12v12H4zM18 9l3-2v10l-3-2z"]
+    ]},
+    { group: "Hesap", items: [
+      ["instellingen", "Ayarlar", "M12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8Zm9.4 4-2 1.2.2 2.4-2.2 1-1.6 1.8-2.4-.4L12 19.5l-1.4-1.5-2.4.4-1.6-1.8-2.2-1 .2-2.4L2.6 12l2-1.2-.2-2.4 2.2-1L8.2 5.6l2.4.4L12 4.5l1.4 1.5 2.4-.4 1.6 1.8 2.2 1-.2 2.4Z"],
+      ["berichten", "Mesajlar", "M3 5h18v12H7l-4 4z"],
+      ["meldingen", "Bildirimler", "M12 3a6 6 0 0 0-6 6v3l-2 3h16l-2-3V9a6 6 0 0 0-6-6Zm-2 15a2 2 0 0 0 4 0Z"],
+      ["facturen", "Faturalar", "M6 3h12v18l-3-2-3 2-3-2-3 2zM8 7h8M8 11h8M8 15h6"],
+      ["mutaties", "Bakiye hareketleri", "M4 7h16v3H4zM4 14h16v3H4zM7 10v4M17 10v4"]
+    ]}
+  ];
+
+  const advViews = ["dashboard","advertentie","fotos","reviews","videos","promotie","omhoog","tegoed","videopromotie","instellingen","berichten","meldingen","facturen","mutaties"];
+
+  function currentAdvView() {
+    const raw = (location.hash || "").replace(/^#!?/, "").trim();
+    return advViews.includes(raw) ? raw : "advertentie";
+  }
+
+  function advSidebar(active) {
+    const item = (key, label, d) => `<a href="#!${key}" class="adv-side-link${key === active ? " active" : ""}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="${d}"/></svg><span>${label}</span></a>`;
+    return advNav.map(group => `
+      ${group.group ? `<div class="adv-side-group">${group.group}</div>` : ""}
+      <nav class="adv-side-nav">${group.items.map(([k, l, d]) => item(k, l, d)).join("")}</nav>
+    `).join("") + `<button class="adv-side-logout" id="advLogout" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 4h7v16h-7M14 12H3m0 0 4-4m-4 4 4 4"/></svg><span>Çıkış</span></button>`;
+  }
+
+  function advWizardTabs(step) {
+    const labels = ["Advertentie", "Doğrulama", "Promosyon", "Akkoord"];
+    return `
+      <ol class="adv-wizard-tabs">
+        ${labels.map((label, i) => `
+          <li class="${i + 1 === step ? "active" : i + 1 < step ? "done" : ""}">
+            <span class="adv-step-num">${i + 1}</span>
+            <span class="adv-step-label">${label}</span>
+          </li>
+        `).join("")}
+      </ol>
+    `;
+  }
+
+  function advWizardActions(step, total) {
+    const prev = step > 1 ? `<a class="adv-btn ghost" href="#!${["advertentie","fotos","promotie","akkoord"][step - 2] || "advertentie"}">Önceki adım</a>` : `<span></span>`;
+    const next = step < total
+      ? `<button type="submit" class="adv-btn primary">Sonraki adım</button>`
+      : `<button type="button" class="adv-btn primary" data-adv-akkoord>Akkoord ver</button>`;
+    return `<footer class="adv-wizard-actions">${prev}${next}</footer>`;
+  }
+
+  function advPanelAdvertentie(a) {
+    const services = ["Eskort", "Erotik Masaj", "BDSM", "Sanal Seks", "Webcam", "Çift", "Vitrin"];
+    const extras = [
+      "El işi", "Oral", "Derin oral", "GFE", "İkili gangbang", "Tek gangbang", "Anal", "Rim", "Striptiz", "Domina",
+      "Submissive", "Fetish", "Roleplay", "Toy", "Foot", "Couple show", "Karşılıklı oral", "Kaykay", "Lingerie", "Outcall",
+      "Incall", "Otel ziyareti", "Akşam yemeği", "Travel companion", "Webcam show", "Photo set", "Video custom"
+    ];
+    const cities = ["Amsterdam", "Rotterdam", "Den Haag", "Utrecht", "Eindhoven", "Groningen", "Alkmaar", "Tilburg", "Almere", "Arnhem"];
+    const days = [["Pzt", "mon"], ["Sal", "tue"], ["Çar", "wed"], ["Per", "thu"], ["Cum", "fri"], ["Cmt", "sat"], ["Paz", "sun"]];
+    const times = Array.from({ length: 24 }, (_, i) => `${String(i).padStart(2, "0")}:00`);
+    return `
+      <form class="adv-form" id="advAdvertentieForm">
+        ${advWizardTabs(1)}
+        <section class="adv-card">
+          <h2 class="adv-title-red">İlan kategorisi</h2>
+          <div class="adv-tip">İlanınız aşağıda seçtiğiniz kategorilerde listelenir. En fazla 3 kategori önerilir.</div>
+          <div class="adv-checkgrid">
+            ${services.map((svc, i) => `<label class="adv-check"><input type="checkbox" name="advCategory" value="${escapeHtml(svc)}" ${i < 2 ? "checked" : ""}><span>${svc}</span></label>`).join("")}
+          </div>
+        </section>
+
+        <section class="adv-card">
+          <h2 class="adv-title-red">İlan adı ve açıklama</h2>
+          <label class="adv-label">İlan adı <small>maksimum 25 karakter</small></label>
+          <input class="adv-input" id="advName" maxlength="25" value="${escapeHtml(a.listingTitle || "1HappyEnd Premium")}" placeholder="Örn. Luna Premium">
+          <label class="adv-label">İlan başlığı</label>
+          <input class="adv-input" id="advHeadline" maxlength="60" value="${escapeHtml(a.headline || "Doğrulanmış profil · 18+ uyumlu")}">
+          <label class="adv-label">Açıklama</label>
+          <textarea class="adv-textarea" id="advAbout" rows="6" placeholder="Profilinizi tanıtın...">${escapeHtml(a.bio || "Sakin, güvenli ve özenli randevu deneyimi. Doğrulanmış profil, net fiyat bilgisi ve hızlı iletişim.")}</textarea>
+        </section>
+
+        <section class="adv-card">
+          <h2 class="adv-title-red">Çalışma saatleri</h2>
+          <div class="adv-hours">
+            ${days.map(([label, key]) => `
+              <div class="adv-hours-row">
+                <span class="adv-hours-day">${label}</span>
+                <select class="adv-input" data-day="${key}-from">${times.map(t => `<option ${t === "10:00" ? "selected" : ""}>${t}</option>`).join("")}</select>
+                <span class="adv-hours-sep">—</span>
+                <select class="adv-input" data-day="${key}-to">${times.map(t => `<option ${t === "22:00" ? "selected" : ""}>${t}</option>`).join("")}</select>
+                <label class="adv-check inline"><input type="checkbox" data-day-allday="${key}"><span>24 saat</span></label>
+              </div>
+            `).join("")}
+          </div>
+        </section>
+
+        <section class="adv-card">
+          <h2 class="adv-title-red">Tarifeler</h2>
+          <div class="adv-prices">
+            ${[["30 dk", 90], ["1 saat", 180], ["2 saat", 320], ["Gece", 900], ["Outcall ek", 50]].map(([label, value], i) => `
+              <label class="adv-price">
+                <span>${label}</span>
+                <div class="adv-price-input"><em>€</em><input class="adv-input" type="number" value="${value}" data-price="${i}"></div>
+              </label>
+            `).join("")}
+          </div>
+        </section>
+
+        <section class="adv-card">
+          <h2 class="adv-title-red">Ek hizmetler</h2>
+          <div class="adv-tip">Sunduğunuz ek hizmetleri seçin. İsterseniz her biri için ek ücret belirleyin.</div>
+          <div class="adv-extras">
+            ${extras.map((ex, i) => `
+              <div class="adv-extra-row">
+                <label class="adv-check"><input type="checkbox" data-extra="${i}"><span>${ex}</span></label>
+                <div class="adv-extra-charge"><em>€</em><input class="adv-input small" type="number" placeholder="Ek" data-extra-charge="${i}"></div>
+              </div>
+            `).join("")}
+          </div>
+        </section>
+
+        <section class="adv-card">
+          <h2 class="adv-title-red">İletişim bilgileri</h2>
+          <div class="adv-grid-2">
+            <label class="adv-label">Ülke kodu
+              <select class="adv-input"><option>+31 (NL)</option><option>+32 (BE)</option><option>+49 (DE)</option><option>+90 (TR)</option></select>
+            </label>
+            <label class="adv-label">Posta kodu
+              <input class="adv-input" placeholder="1012 AB">
+            </label>
+            <label class="adv-label">Şehir
+              <select class="adv-input">${cities.map(c => `<option ${c === a.city ? "selected" : ""}>${c}</option>`).join("")}</select>
+            </label>
+            <label class="adv-label">Adres notu (opsiyonel)
+              <input class="adv-input" placeholder="Sadece doğrulanmış üyelere gösterilir">
+            </label>
+          </div>
+          <h3 class="adv-subtitle">İletişim yöntemleri</h3>
+          <div class="adv-contact-row">
+            ${[["Telefon", "phoneCall"], ["WhatsApp", "whatsapp"], ["Signal", "signal"], ["Telegram", "telegram"], ["SMS", "sms"], ["1HappyEnd mesajı", "heMessage"]].map(([label, key], i) => `
+              <label class="adv-toggle">
+                <input type="checkbox" data-contact="${key}" ${i < 2 ? "checked" : ""}>
+                <span class="adv-toggle-track"></span>
+                <span class="adv-toggle-label">${label}</span>
+              </label>
+            `).join("")}
+          </div>
+          <h3 class="adv-subtitle">E-posta bildirim sıklığı</h3>
+          <div class="adv-radios">
+            <label><input type="radio" name="advFreq" checked> Her yeni mesajda</label>
+            <label><input type="radio" name="advFreq"> Günde en fazla 1 kere</label>
+            <label><input type="radio" name="advFreq"> Haftada en fazla 1 kere</label>
+            <label><input type="radio" name="advFreq"> Hiç gönderme</label>
+          </div>
+        </section>
+
+        <section class="adv-card">
+          <h2 class="adv-title-red">Kişisel bilgiler</h2>
+          <div class="adv-grid-2">
+            <fieldset class="adv-fieldset">
+              <legend>Cinsiyet</legend>
+              ${["Kadın", "Erkek", "Çift", "Trans Kadın"].map((v, i) => `<label class="adv-check inline"><input type="radio" name="advGender" ${i === 0 ? "checked" : ""}><span>${v}</span></label>`).join("")}
+            </fieldset>
+            <fieldset class="adv-fieldset">
+              <legend>Yönelim</legend>
+              ${["Heteroseksüel", "Biseksüel", "Lezbiyen", "Queer"].map((v, i) => `<label class="adv-check inline"><input type="radio" name="advOri" ${i === 0 ? "checked" : ""}><span>${v}</span></label>`).join("")}
+            </fieldset>
+            <label class="adv-label">Doğum tarihi
+              <div class="adv-date">
+                <select class="adv-input">${Array.from({length:31},(_,i)=>`<option>${i+1}</option>`).join("")}</select>
+                <select class="adv-input">${["Oca","Şub","Mar","Nis","May","Haz","Tem","Ağu","Eyl","Eki","Kas","Ara"].map((m,i)=>`<option value="${i+1}">${m}</option>`).join("")}</select>
+                <select class="adv-input">${Array.from({length:60},(_,i)=>2007-i).map(y=>`<option>${y}</option>`).join("")}</select>
+              </div>
+            </label>
+            <label class="adv-label">Etnik köken
+              <select class="adv-input"><option>Avrupalı</option><option>Akdeniz</option><option>Latin</option><option>Asyalı</option><option>Afrikalı</option><option>Karışık</option></select>
+            </label>
+            <label class="adv-label">Konuşulan diller
+              <div class="adv-langs">
+                ${["NL","EN","DE","TR","ES","FR"].map((l,i) => `<label class="adv-check inline"><input type="checkbox" ${i<2?"checked":""}><span>${l}</span></label>`).join("")}
+              </div>
+            </label>
+            <label class="adv-label">Vücut tipi
+              <select class="adv-input"><option>Atletik</option><option>İnce</option><option>Kıvrımlı</option><option>BBW</option><option>Kaslı</option></select>
+            </label>
+            <label class="adv-label">Saç rengi
+              <select class="adv-input"><option>Sarı</option><option>Kahverengi</option><option>Siyah</option><option>Kızıl</option><option>Renkli</option></select>
+            </label>
+            <label class="adv-label">Boy (cm)
+              <input class="adv-input" type="number" value="170">
+            </label>
+          </div>
+        </section>
+
+        <section class="adv-card">
+          <h2 class="adv-title-red">Fotoğraflar</h2>
+          <div class="adv-tip">JPG/PNG, max 6 MB. En az 3 fotoğraf öneriyoruz. Yüz fotoğrafı verifiye rozeti getirir.</div>
+          <div class="adv-photo-grid">
+            <button type="button" class="adv-photo-add" data-demo-upload>
+              <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+              <span>Fotoğraf ekle</span>
+            </button>
+            <div class="adv-photo-slot demo">portrait-1.jpg</div>
+            <div class="adv-photo-slot demo">portrait-2.jpg</div>
+            <div class="adv-photo-slot empty">Boş</div>
+          </div>
+        </section>
+
+        <section class="adv-card">
+          <h2 class="adv-title-red">İlan önizlemesi</h2>
+          <label class="adv-label">Promosyon etiketi <small>maks 15 karakter</small></label>
+          <input class="adv-input" id="advPromoSticker" maxlength="15" placeholder="Yeni · Verified">
+          <article class="adv-preview-card">
+            <div class="adv-preview-photo">${escapeHtml((a.name || a.username || "L").charAt(0).toUpperCase())}</div>
+            <div class="adv-preview-body">
+              <header>
+                <strong id="advPrevName">${escapeHtml(a.listingTitle || "1HappyEnd Premium")}</strong>
+                <span class="adv-pill">Verified</span>
+              </header>
+              <p class="adv-preview-meta">${escapeHtml(a.city || "Amsterdam")} · 28 yaş · Kadın</p>
+              <p class="adv-preview-text" id="advPrevText">${escapeHtml(a.bio || "Sakin, güvenli ve özenli randevu deneyimi.")}</p>
+              <footer>
+                <span>📷 4 foto</span><span>★ 4.8</span>
+                <button type="button" class="adv-btn ghost small">Hemen ara</button>
+              </footer>
+            </div>
+          </article>
+        </section>
+
+        ${advWizardActions(1, 4)}
+      </form>
+    `;
+  }
+
+  function advPanelValidatie(a) {
+    const countries = ["Hollanda", "Belçika", "Almanya", "Fransa", "İspanya", "İtalya", "Türkiye", "Polonya", "Romanya", "Bulgaristan"];
+    return `
+      <form class="adv-form" id="advValidatieForm">
+        ${advWizardTabs(2)}
+
+        <section class="adv-card">
+          <h2 class="adv-title-red">Numara doğrulama</h2>
+          <p class="adv-text">Telefonunuza gelecek SMS kodunu girerek numaranızı doğrulayın. Bu adım admin onayı için zorunludur.</p>
+          <div class="adv-grid-2">
+            <label class="adv-label">Ülke kodu
+              <select class="adv-input"><option>+31 (NL)</option><option>+32 (BE)</option><option>+49 (DE)</option><option>+90 (TR)</option></select>
+            </label>
+            <label class="adv-label">Telefon numarası
+              <input class="adv-input" id="advPhone" placeholder="6 12 34 56 78">
+            </label>
+          </div>
+          <button type="button" class="adv-btn outline" data-demo-save>SMS kodu gönder</button>
+          <label class="adv-label">SMS kodu
+            <input class="adv-input" placeholder="6 haneli kod" maxlength="6">
+          </label>
+        </section>
+
+        <section class="adv-card">
+          <h2 class="adv-title-red">Kimlik & yaş doğrulama</h2>
+          <p class="adv-text">Aşağıdaki bilgilere göre size özel bir doğrulama listesi (kimlik, çalışma izni vb.) hazırlanır. Bu adımda mobil cihaz tavsiye edilir.</p>
+          <div class="adv-grid-2">
+            <label class="adv-label">Uyruk
+              <select class="adv-input">${countries.map(c => `<option>${c}</option>`).join("")}</select>
+            </label>
+            <label class="adv-label">Doğum tarihi
+              <div class="adv-date">
+                <select class="adv-input">${Array.from({length:31},(_,i)=>`<option>${i+1}</option>`).join("")}</select>
+                <select class="adv-input">${["Oca","Şub","Mar","Nis","May","Haz","Tem","Ağu","Eyl","Eki","Kas","Ara"].map((m,i)=>`<option value="${i+1}">${m}</option>`).join("")}</select>
+                <select class="adv-input">${Array.from({length:80},(_,i)=>2007-i).map(y=>`<option>${y}</option>`).join("")}</select>
+              </div>
+            </label>
+          </div>
+          <ul class="adv-checklist">
+            <li><span class="adv-dot"></span> 18+ yaş beyanı</li>
+            <li><span class="adv-dot"></span> Kimlik fotoğrafı (ön/arka)</li>
+            <li><span class="adv-dot"></span> Selfie + tarihli kâğıt</li>
+            <li><span class="adv-dot subtle"></span> Çalışma izni (gerekiyorsa)</li>
+          </ul>
+          <div class="adv-photo-grid">
+            <button type="button" class="adv-photo-add" data-demo-upload>
+              <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+              <span>Kimlik yükle</span>
+            </button>
+            <button type="button" class="adv-photo-add" data-demo-upload>
+              <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+              <span>Selfie yükle</span>
+            </button>
+          </div>
+        </section>
+
+        ${advWizardActions(2, 4)}
+      </form>
+    `;
+  }
+
+  function advPanelPromotie() {
+    const packages = [
+      { id: "top", title: "Üst sıraya çık", price: "€19", period: "24 saat", desc: "İlanınız 24 saat boyunca kategori sayfasının en üstünde sabitlenir.", badge: "Popüler" },
+      { id: "premium", title: "Premium vitrin", price: "€149", period: "30 gün", desc: "Anasayfada vitrin kartı, premium rozet ve öncelikli arama.", badge: "Vitrin" },
+      { id: "videopromo", title: "Video promosyon", price: "€59", period: "7 gün", desc: "Profil videonuz video promo akışında oynatılır.", badge: "Video" },
+      { id: "credits", title: "Kredi paketi", price: "€89", period: "100 kredi", desc: "Üst sıraya çık ve mesaj kredilerinde kullanılabilir bakiye.", badge: "Bakiye" }
+    ];
+    return `
+      <div class="adv-form">
+        ${advWizardTabs(3)}
+
+        <section class="adv-card">
+          <h2 class="adv-title-red">Promosyon paketi seç</h2>
+          <p class="adv-text">İlanınızın görünürlüğünü artırmak için bir paket seçin. Birden fazla paket sepete eklenebilir.</p>
+          <div class="adv-package-grid">
+            ${packages.map(p => `
+              <article class="adv-package">
+                <span class="adv-pill">${p.badge}</span>
+                <h3>${p.title}</h3>
+                <strong>${p.price} <em>· ${p.period}</em></strong>
+                <p>${p.desc}</p>
+                <button type="button" class="adv-btn outline" data-add-cart="${p.id}|${p.title}|${p.price}">Sepete ekle</button>
+              </article>
+            `).join("")}
+          </div>
+        </section>
+
+        <section class="adv-card">
+          <h2 class="adv-title-red">Sepet</h2>
+          <div id="advCartList" class="adv-cart">
+            <div class="adv-cart-empty">Sepetiniz boş.</div>
+          </div>
+          <div class="adv-cart-total" id="advCartTotal">Toplam: €0</div>
+        </section>
+
+        <footer class="adv-wizard-actions">
+          <a class="adv-btn ghost" href="#!fotos">Önceki adım</a>
+          <a class="adv-btn primary" href="#!akkoord">Sonraki adım</a>
+        </footer>
+      </div>
+    `;
+  }
+
+  function advPanelAkkoord() {
+    return `
+      <div class="adv-form">
+        ${advWizardTabs(4)}
+
+        <section class="adv-card">
+          <h2 class="adv-title-red">Akkoord & ödeme</h2>
+          <p class="adv-text">Aşağıdaki sepeti onaylayarak paketleri etkinleştirin. Ödeme demo akışında simüle edilir; canlıda Stripe / iDEAL / kart sağlayıcıya yönlendirilir.</p>
+          <div id="advCartListAkkoord" class="adv-cart">
+            <div class="adv-cart-empty">Sepetiniz boş. <a href="#!promotie">Promosyon paketi seçin →</a></div>
+          </div>
+          <div class="adv-cart-total" id="advCartTotalAkkoord">Toplam: €0</div>
+        </section>
+
+        <section class="adv-card">
+          <h2 class="adv-title-red">Onaylar</h2>
+          <label class="adv-check"><input type="checkbox" id="advAkkoordTerms"><span>Genel hüküm ve koşulları okudum, kabul ediyorum.</span></label>
+          <label class="adv-check"><input type="checkbox" id="advAkkoordAge"><span>18+ yaşında olduğumu ve gerçek bilgilerimi girdiğimi beyan ediyorum.</span></label>
+          <label class="adv-check"><input type="checkbox" id="advAkkoordRefund"><span>Geri ödeme politikasını okudum.</span></label>
+        </section>
+
+        <footer class="adv-wizard-actions">
+          <a class="adv-btn ghost" href="#!promotie">Önceki adım</a>
+          <button type="button" class="adv-btn primary" data-adv-akkoord>Akkoord ver & ödemeye geç</button>
+        </footer>
+      </div>
+    `;
+  }
+
+  function advPanelDashboard(a) {
+    return `
+      <div class="adv-form">
+        <section class="adv-card adv-hero">
+          <div>
+            <span class="adv-eyebrow">1HappyEnd reklam veren paneli</span>
+            <h1>Hoş geldin, ${escapeHtml(a.name || a.username)}</h1>
+            <p class="adv-text">İlanınızı, doğrulamanızı, promosyon paketlerinizi ve mesajlarınızı buradan yönetebilirsiniz.</p>
+          </div>
+          <a class="adv-btn primary" href="#!advertentie">İlanı düzenle</a>
+        </section>
+        <div class="adv-stats">
+          <article><span>Bakiye</span><strong>€${a.balance || 100}</strong></article>
+          <article><span>HE Coin</span><strong>${a.wallet || 0}</strong></article>
+          <article><span>Profil durumu</span><strong>Concept · admin onayı</strong></article>
+          <article><span>Bu ay görüntüleme</span><strong>1.284</strong></article>
+          <article><span>Yeni mesaj</span><strong>3</strong></article>
+          <article><span>Aktif paket</span><strong>Basis</strong></article>
+        </div>
+        <section class="adv-card">
+          <h2 class="adv-title-red">Yayın hazırlığı kontrol listesi</h2>
+          <ul class="adv-checklist">
+            <li><span class="adv-dot done"></span> İlan formu dolduruldu <a href="#!advertentie">Düzenle</a></li>
+            <li><span class="adv-dot"></span> Numara doğrulama tamamlanmadı <a href="#!doğrulama" class="muted">Devam et</a></li>
+            <li><span class="adv-dot"></span> Promosyon paketi seçilmedi <a href="#!promotie">Paketleri gör</a></li>
+            <li><span class="adv-dot subtle"></span> Akkoord onayı bekliyor</li>
+          </ul>
+        </section>
+      </div>
+    `;
+  }
+
+  function advPanelFotos() {
+    return `
+      <div class="adv-form">
+        <section class="adv-card">
+          <h2 class="adv-title-red">Fotoğraf yönetimi</h2>
+          <p class="adv-text">Profil galerinize 20 fotoğrafa kadar yükleyebilirsiniz. Yüz fotoğrafı içeren profillere verifiye rozeti uygulanır.</p>
+          <div class="adv-photo-grid">
+            <button type="button" class="adv-photo-add" data-demo-upload><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span>Yeni fotoğraf</span></button>
+            ${[1,2,3,4,5].map(i => `<div class="adv-photo-slot demo">galeri-${i}.jpg <button type="button" data-demo-save class="adv-photo-x">×</button></div>`).join("")}
+          </div>
+        </section>
+      </div>
+    `;
+  }
+
+  function advPanelReviews() {
+    const reviews = [
+      { user: "guestM", rating: 5, text: "Profesyonel iletişim, doğrulanmış profil. Tavsiye ederim.", date: "2 gün önce" },
+      { user: "vis23", rating: 4, text: "Konum ve fiyat şeffaftı, randevuya uyumluydu.", date: "1 hafta önce" },
+      { user: "demo7", rating: 5, text: "Hızlı yanıt, düzgün hizmet.", date: "3 hafta önce" }
+    ];
+    return `
+      <div class="adv-form">
+        <section class="adv-card">
+          <h2 class="adv-title-red">Yorumlar</h2>
+          <p class="adv-text">Üye yorumlarını burada görüntüler ve yanıtlayabilirsiniz. Şikayet varsa bayrak butonu ile destek hattına iletin.</p>
+          <div class="adv-reviews">
+            ${reviews.map(r => `
+              <article class="adv-review">
+                <header>
+                  <strong>${r.user}</strong>
+                  <span class="adv-stars">${"★".repeat(r.rating)}${"☆".repeat(5 - r.rating)}</span>
+                  <em>${r.date}</em>
+                </header>
+                <p>${r.text}</p>
+                <footer><button type="button" class="adv-btn ghost small" data-demo-save>Yanıtla</button><button type="button" class="adv-btn ghost small" data-demo-save>Bayrakla</button></footer>
+              </article>
+            `).join("")}
+          </div>
+        </section>
+      </div>
+    `;
+  }
+
+  function advPanelVideos() {
+    return `
+      <div class="adv-form">
+        <section class="adv-card">
+          <h2 class="adv-title-red">Videolar</h2>
+          <p class="adv-text">Premium ilan paketlerinde profil video oynatma akışı açıktır. Maksimum 60 saniye, 50 MB.</p>
+          <div class="adv-photo-grid">
+            <button type="button" class="adv-photo-add" data-demo-upload><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span>Video yükle</span></button>
+            <div class="adv-photo-slot demo">profil-intro.mp4</div>
+          </div>
+          <p class="adv-text muted">Premium / Video promosyon paketi olmadan videolar liste sayfalarında oynatılmaz.</p>
+        </section>
+      </div>
+    `;
+  }
+
+  function advPanelOmhoog() {
+    return `
+      <div class="adv-form">
+        <section class="adv-card">
+          <h2 class="adv-title-red">Üst sıraya çık</h2>
+          <p class="adv-text">İlanınızı seçtiğiniz kategori listesinin en üstüne 24 saatliğine sabitleyin.</p>
+          <div class="adv-grid-2">
+            <label class="adv-label">Kategori
+              <select class="adv-input"><option>Eskort</option><option>Erotik Masaj</option><option>BDSM</option></select>
+            </label>
+            <label class="adv-label">Süre
+              <select class="adv-input"><option>24 saat (€19)</option><option>3 gün (€49)</option><option>7 gün (€99)</option></select>
+            </label>
+          </div>
+          <button type="button" class="adv-btn primary" data-add-cart="omhoog|Üst sıra · 24 saat|€19">Sepete ekle</button>
+        </section>
+      </div>
+    `;
+  }
+
+  function advPanelTegoed() {
+    const packs = [["100 kredi", "€89"], ["250 kredi", "€199"], ["500 kredi", "€349"], ["1000 kredi", "€599"]];
+    return `
+      <div class="adv-form">
+        <section class="adv-card">
+          <h2 class="adv-title-red">Kredi satın al</h2>
+          <p class="adv-text">Krediler üst sıraya çıkma, mesaj ve video promosyon adımlarında kullanılabilir.</p>
+          <div class="adv-package-grid">
+            ${packs.map(([title, price]) => `
+              <article class="adv-package">
+                <h3>${title}</h3>
+                <strong>${price}</strong>
+                <button type="button" class="adv-btn outline" data-add-cart="kredi|${title}|${price}">Sepete ekle</button>
+              </article>
+            `).join("")}
+          </div>
+        </section>
+      </div>
+    `;
+  }
+
+  function advPanelVideoPromo() {
+    return `
+      <div class="adv-form">
+        <section class="adv-card">
+          <h2 class="adv-title-red">Video promosyon</h2>
+          <p class="adv-text">Profil videonuz, anasayfada video promosyon akışında 7 gün boyunca oynatılır.</p>
+          <div class="adv-grid-2">
+            <label class="adv-label">Video seç
+              <select class="adv-input"><option>profil-intro.mp4</option></select>
+            </label>
+            <label class="adv-label">Süre
+              <select class="adv-input"><option>7 gün (€59)</option><option>14 gün (€99)</option><option>30 gün (€179)</option></select>
+            </label>
+          </div>
+          <button type="button" class="adv-btn primary" data-add-cart="videopromo|Video promo · 7 gün|€59">Sepete ekle</button>
+        </section>
+      </div>
+    `;
+  }
+
+  function advPanelInstellingen(a) {
+    return `
+      <div class="adv-form">
+        <section class="adv-card">
+          <h2 class="adv-title-red">Hesap ayarları</h2>
+          <label class="adv-label">Görünen ad
+            <input class="adv-input" id="memberName" value="${escapeHtml(a.name || a.username)}">
+          </label>
+          <label class="adv-label">E-posta
+            <input class="adv-input" id="memberEmail" type="email" value="${escapeHtml(a.email || "")}">
+          </label>
+          <label class="adv-label">Tercih edilen dil
+            <select class="adv-input"><option>NL</option><option>TR</option><option>EN</option><option>DE</option></select>
+          </label>
+          <button type="button" class="adv-btn primary" data-demo-save>Değişiklikleri kaydet</button>
+        </section>
+        <section class="adv-card">
+          <h2 class="adv-title-red">Şifre</h2>
+          <label class="adv-label">Mevcut şifre <input class="adv-input" type="password"></label>
+          <label class="adv-label">Yeni şifre <input class="adv-input" type="password"></label>
+          <label class="adv-label">Yeni şifre (tekrar) <input class="adv-input" type="password"></label>
+          <button type="button" class="adv-btn primary" data-demo-save>Şifreyi değiştir</button>
+        </section>
+        <section class="adv-card danger">
+          <h2 class="adv-title-red">Hesabı sil</h2>
+          <p class="adv-text">Demo akışında hesap silme yalnızca akış olarak gösterilir.</p>
+          <button type="button" class="adv-btn outline" data-demo-save>Hesabımı sil</button>
+        </section>
+      </div>
+    `;
+  }
+
+  function advPanelBerichten() {
+    const msgs = [
+      { from: "Visitor demo", subj: "Müsait misiniz?", time: "1 dk önce", unread: true },
+      { from: "Support", subj: "Doğrulama tamamlandı", time: "1 saat önce", unread: false },
+      { from: "Visitor 91", subj: "Tarife ve konum", time: "Dün", unread: false }
+    ];
+    return `
+      <div class="adv-form">
+        <section class="adv-card no-pad">
+          <h2 class="adv-title-red" style="padding:16px 18px 0">Mesajlar</h2>
+          <div class="adv-msg-list">
+            ${msgs.map(m => `
+              <article class="adv-msg ${m.unread ? "unread" : ""}">
+                <strong>${m.from}</strong>
+                <span>${m.subj}</span>
+                <em>${m.time}</em>
+              </article>
+            `).join("")}
+          </div>
+        </section>
+      </div>
+    `;
+  }
+
+  function advPanelMeldingen() {
+    return `
+      <div class="adv-form">
+        <section class="adv-card">
+          <h2 class="adv-title-red">Bildirimler</h2>
+          <ul class="adv-noti">
+            <li><strong>İlan görüntülendi</strong> · 12 yeni görüntüleme · 2 saat önce</li>
+            <li><strong>Yeni yorum</strong> · vis23 yorum bıraktı · dün</li>
+            <li><strong>Promosyon</strong> · Üst sıra paketiniz 24 saat içinde dolacak · 3 saat önce</li>
+            <li><strong>Sistem</strong> · Doğrulama hala beklemede · 2 gün önce</li>
+          </ul>
+        </section>
+      </div>
+    `;
+  }
+
+  function advPanelFacturen() {
+    const rows = [
+      ["INV-2026-031", "01-04-2026", "Premium vitrin · 30 gün", "€149,00", "Ödendi"],
+      ["INV-2026-027", "15-03-2026", "Üst sıra · 7 gün", "€99,00", "Ödendi"],
+      ["INV-2026-022", "02-03-2026", "100 HE Coin", "€89,00", "Ödendi"]
+    ];
+    return `
+      <div class="adv-form">
+        <section class="adv-card">
+          <h2 class="adv-title-red">Faturalar</h2>
+          <table class="adv-table">
+            <thead><tr><th>No</th><th>Tarih</th><th>Açıklama</th><th>Tutar</th><th>Durum</th><th></th></tr></thead>
+            <tbody>
+              ${rows.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td><span class="adv-badge ok">${r[4]}</span></td><td><a href="#" data-demo-save>PDF</a></td></tr>`).join("")}
+            </tbody>
+          </table>
+        </section>
+      </div>
+    `;
+  }
+
+  function advPanelMutaties() {
+    const rows = [
+      ["+100 kredi", "Paket alımı INV-2026-022", "02-03-2026", "+"],
+      ["-19 kredi", "Üst sıra · Eskort 24s", "12-03-2026", "-"],
+      ["-12 kredi", "Mesaj kredisi", "20-03-2026", "-"],
+      ["+50 kredi", "Promosyon hediyesi", "01-04-2026", "+"]
+    ];
+    return `
+      <div class="adv-form">
+        <section class="adv-card">
+          <h2 class="adv-title-red">Bakiye hareketleri</h2>
+          <table class="adv-table">
+            <thead><tr><th>Hareket</th><th>Açıklama</th><th>Tarih</th></tr></thead>
+            <tbody>
+              ${rows.map(r => `<tr class="${r[3] === '+' ? 'pos' : 'neg'}"><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join("")}
+            </tbody>
+          </table>
+        </section>
+      </div>
+    `;
+  }
+
+  function advPanelByKey(view, a) {
+    switch (view) {
+      case "dashboard": return advPanelDashboard(a);
+      case "advertentie": return advPanelAdvertentie(a);
+      case "fotos": return advPanelFotos();
+      case "reviews": return advPanelReviews();
+      case "videos": return advPanelVideos();
+      case "promotie": return advPanelPromotie();
+      case "omhoog": return advPanelOmhoog();
+      case "tegoed": return advPanelTegoed();
+      case "videopromotie": return advPanelVideoPromo();
+      case "instellingen": return advPanelInstellingen(a);
+      case "berichten": return advPanelBerichten();
+      case "meldingen": return advPanelMeldingen();
+      case "facturen": return advPanelFacturen();
+      case "mutaties": return advPanelMutaties();
+      default: return advPanelAdvertentie(a);
+    }
+  }
+
+  // virtual extra views
+  function resolveExtraView(view) {
+    if (view === "akkoord") return { panel: advPanelAkkoord(), active: "promotie" };
+    if (view === "doğrulama" || view === "validatie") return { panel: advPanelValidatie(currentAccount()), active: "advertentie" };
+    return null;
+  }
+
+  function advCart() {
+    try { return JSON.parse(localStorage.getItem("happyend-adv-cart") || "[]"); } catch { return []; }
+  }
+  function saveAdvCart(items) { localStorage.setItem("happyend-adv-cart", JSON.stringify(items)); }
+  function priceOf(label) { const m = String(label).match(/€\s*([\d.,]+)/); return m ? Number(m[1].replace(/[^\d.]/g, "")) : 0; }
+
+  function renderAdvCart() {
+    const items = advCart();
+    const totalNum = items.reduce((sum, it) => sum + priceOf(it.price), 0);
+    const total = `Toplam: €${totalNum.toFixed(0)}`;
+    const html = items.length
+      ? `<ul class="adv-cart-items">${items.map((it, i) => `<li><strong>${escapeHtml(it.title)}</strong><span>${escapeHtml(it.price)}</span><button type="button" data-cart-remove="${i}">×</button></li>`).join("")}</ul>`
+      : `<div class="adv-cart-empty">Sepetiniz boş.</div>`;
+    document.getElementById("advCartList") && (document.getElementById("advCartList").innerHTML = html);
+    document.getElementById("advCartListAkkoord") && (document.getElementById("advCartListAkkoord").innerHTML = items.length ? html : `<div class="adv-cart-empty">Sepetiniz boş. <a href="#!promotie">Promosyon paketi seçin →</a></div>`);
+    document.getElementById("advCartTotal") && (document.getElementById("advCartTotal").textContent = total);
+    document.getElementById("advCartTotalAkkoord") && (document.getElementById("advCartTotalAkkoord").textContent = total);
+  }
+
+  function advTopBar(a) {
+    return `
+      <div class="adv-topbar">
+        <div class="adv-topbar-inner">
+          <a class="adv-brand" href="../">
+            <span class="adv-brand-mark"></span>
+            <strong>1HappyEnd</strong>
+          </a>
+          <div class="adv-topbar-spacer"></div>
+          <a class="adv-top-link" href="#!berichten">Müşteri hizmetleri</a>
+          <a class="adv-top-link active" href="#!dashboard">Hesabım</a>
+          <span class="adv-balance" title="Bakiye">€${(a.balance || 100).toFixed(2).replace(".", ",")}</span>
+          <a class="adv-cart-btn" href="#!akkoord" id="advCartBtn">
+            <svg viewBox="0 0 24 24"><path d="M3 5h2l3 11h11l2-8H7"/><circle cx="9" cy="20" r="1.5"/><circle cx="17" cy="20" r="1.5"/></svg>
+            <span class="adv-cart-count" id="advCartCount">0</span>
+          </a>
+          <select class="adv-lang"><option>NL</option><option>TR</option><option>EN</option><option>DE</option></select>
+          <button class="adv-top-logout" id="advTopLogout" title="Çıkış"><svg viewBox="0 0 24 24"><path d="M10 4h7v16h-7M14 12H3m0 0 4-4m-4 4 4 4"/></svg></button>
+        </div>
+      </div>
+    `;
+  }
+
+  function advertiserDashboard(a, s) {
+    a = a || currentAccount();
+    s = s || session();
+    const view = currentAdvView();
+    const extra = resolveExtraView((location.hash || "").replace(/^#!?/, "").trim());
+    const activeForSidebar = extra ? extra.active : view;
+    const panel = extra ? extra.panel : advPanelByKey(view, a);
+    root.innerHTML = `
+      ${advTopBar(a)}
+      ${s && s.needsSettingsConfirm ? settingsConfirmModal(a) : ""}
+      <main class="adv-shell">
+        <aside class="adv-sidebar">${advSidebar(activeForSidebar)}</aside>
+        <section class="adv-main">${panel}</section>
+      </main>
+      ${footer()}
+    `;
+    bindGlobal();
+    bindAdvertiserDashboard();
+    renderAdvCart();
+    document.getElementById("advCartCount") && (document.getElementById("advCartCount").textContent = String(advCart().length));
+  }
+
+  function bindAdvertiserDashboard() {
+    document.getElementById("advLogout")?.addEventListener("click", () => { setSession(null); location.href = "../index.html"; });
+    document.getElementById("advTopLogout")?.addEventListener("click", () => { setSession(null); location.href = "../index.html"; });
+    document.querySelectorAll("[data-demo-upload]").forEach(el => el.addEventListener("click", () => toast("Dosya yükleme demo akışında simüle edildi.")));
+    document.querySelectorAll("[data-demo-save]").forEach(el => el.addEventListener("click", event => { event.preventDefault(); toast("Değişiklikler kaydedildi."); }));
+    document.querySelectorAll("[data-add-cart]").forEach(el => el.addEventListener("click", () => {
+      const [id, title, price] = el.dataset.addCart.split("|");
+      const items = advCart();
+      items.push({ id, title, price });
+      saveAdvCart(items);
+      renderAdvCart();
+      const count = document.getElementById("advCartCount"); if (count) count.textContent = String(items.length);
+      toast(`${title} sepete eklendi.`);
+    }));
+    document.body.addEventListener("click", event => {
+      const rm = event.target.closest("[data-cart-remove]");
+      if (rm) {
+        const items = advCart();
+        items.splice(Number(rm.dataset.cartRemove), 1);
+        saveAdvCart(items);
+        renderAdvCart();
+        const count = document.getElementById("advCartCount"); if (count) count.textContent = String(items.length);
+      }
+      const ak = event.target.closest("[data-adv-akkoord]");
+      if (ak) {
+        const t = document.getElementById("advAkkoordTerms");
+        const ag = document.getElementById("advAkkoordAge");
+        const rf = document.getElementById("advAkkoordRefund");
+        if (t && ag && rf && (!t.checked || !ag.checked || !rf.checked)) { toast("Devam etmek için tüm onayları işaretleyin."); return; }
+        const items = advCart();
+        const total = items.reduce((sum, it) => sum + priceOf(it.price), 0);
+        recordTransaction("Advertiser akkoord", "card", `€${total.toFixed(0)}`);
+        saveAdvCart([]);
+        renderAdvCart();
+        const count = document.getElementById("advCartCount"); if (count) count.textContent = "0";
+        toast("Akkoord verildi. Ödeme akışı kuyruğa alındı.");
+      }
+    }, { once: true });
+    document.getElementById("advAdvertentieForm")?.addEventListener("submit", event => {
+      event.preventDefault();
+      location.hash = "#!doğrulama";
+    });
+    document.getElementById("advValidatieForm")?.addEventListener("submit", event => {
+      event.preventDefault();
+      location.hash = "#!promotie";
+    });
+    if (!window.__advHashBound) {
+      window.__advHashBound = true;
+      window.addEventListener("hashchange", () => advertiserDashboard());
+    }
   }
 
   function adminPage() {
