@@ -912,7 +912,7 @@
   }
 
   function accountPanelKey(label, isAdvertiser) {
-    const visitor = { "Ayarlar": "settings", "Yorumlar": "reviews", "Raporlar": "reports", "Meldingen": "notifications", "Opgeslagen Zoekopdrachten": "saved" };
+    const visitor = { "Settings": "settings", "Reviews": "reviews", "Messages": "messages", "Notifications": "notifications" };
     const advertiser = { "Ayarlar": "settings", "Profil": "profile", "Ilanlar": "listings", "Medya": "media", "Paketler": "packages", "Odemeler": "payments", "Mesajlar": "messages" };
     return (isAdvertiser ? advertiser : visitor)[label] || "settings";
   }
@@ -925,7 +925,7 @@
     const activity = accountActivity(a);
     const settingsMenu = isAdvertiser
       ? ["Ayarlar", "Profil", "Ilanlar", "Medya", "Paketler", "Odemeler", "Mesajlar"]
-      : ["Ayarlar", "Yorumlar", "Raporlar", "Meldingen", "Opgeslagen Zoekopdrachten"];
+      : ["Settings", "Reviews", "Messages", "Notifications"];
     root.innerHTML = `
       ${accountVersionBanner()}
       ${header("account")}
@@ -933,10 +933,10 @@
       <main class="account-settings-shell">
         <aside class="account-settings-sidebar">
           ${settingsMenu.map((item, index) => `<a class="${index === 0 ? "active" : ""}" href="#" data-account-menu="${accountPanelKey(item, isAdvertiser)}">${item}</a>`).join("")}
-          <button id="memberLogout">Uitloggen</button>
+          <button id="memberLogout">${isAdvertiser ? "Uitloggen" : "Log out"}</button>
         </aside>
         <section class="account-settings-main">
-          <h1 id="accountPanelTitle">Ayarlar</h1>
+          <h1 id="accountPanelTitle">${isAdvertiser ? "Ayarlar" : "Settings"}</h1>
           <article class="settings-card" data-account-panel="settings">
             <h2>Wijzig bijnaam</h2>
             <label>Nieuwe bijnaam</label>
@@ -1007,17 +1007,13 @@
                 ${activityRows(activity.reviews)}
               </div>
             </article>
-            <article class="settings-card" data-account-panel="reports">
-              <p>Güvenlik, şikayet ve destek talepleri buradan takip edilir.</p>
-              <div class="message-list compact">${activityRows(activity.reports)}</div>
-              <div class="account-list-row"><strong>Yeni rapor oluştur</strong><span>Destek ekibine gider ve Meldingen alanına bildirim düşer</span><button type="button" data-add-report>Başlat</button></div>
-            </article>
-            <article class="settings-card" data-account-panel="saved">
-              ${activity.saved.map(item => `<div class="account-list-row"><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(item.text || item.frequency)}</span><button type="button" data-demo-save>Düzenle</button></div>`).join("")}
-              <div class="account-list-row"><strong>Yeni arama kaydet</strong><span>Arama ve bildirimlere bağlanır</span><button type="button" data-add-saved>Kaydet</button></div>
+            <article class="settings-card" data-account-panel="messages">
+              <div class="message-list compact">
+                ${activityRows(activity.messages)}
+              </div>
             </article>
           ` : ""}
-          <article class="settings-card" data-account-panel="${isAdvertiser ? "messages" : "settings"}">
+          <article class="settings-card" data-account-panel="settings">
             <h2>Berichtenbox</h2>
             <p>Via de berichtenbox kun je veilig contact onderhouden binnen 1HappyEnd. In de demo wordt dit lokaal opgeslagen.</p>
             <label class="settings-toggle"><input type="checkbox" checked><span></span><b>De berichtenbox staat aan</b></label>
@@ -1224,7 +1220,7 @@
       event.preventDefault();
       openAccountPanel(item.dataset.accountMenu, item.textContent.trim());
     });
-    if (document.querySelector("[data-account-panel]")) openAccountPanel("settings", "Ayarlar");
+    if (document.querySelector("[data-account-panel]")) openAccountPanel("settings", document.querySelector('[data-account-menu="settings"]')?.textContent.trim() || "Settings");
     document.querySelector(".member-menu")?.addEventListener("click", event => {
       const btn = event.target.closest("[data-member-tab]");
       if (!btn) return;
