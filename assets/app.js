@@ -975,19 +975,16 @@
               <p>Media wordt in deze demo lokaal gesimuleerd. In de echte versie komt hier upload, preview en moderatie.</p>
             </article>
             <article class="settings-card advertiser-card" data-account-panel="listings">
-              <h2>Mijn advertenties</h2>
               <div class="account-list-row"><strong>1HappyEnd demo profiel</strong><span>Concept</span><button type="button" data-demo-save>Bewerken</button></div>
               <div class="account-list-row"><strong>Nieuwe advertentie</strong><span>Nog niet gepubliceerd</span><button type="button" data-demo-save>Aanmaken</button></div>
               <p>Advertenties worden na betaling en admincontrole zichtbaar in de lijst.</p>
             </article>
             <article class="settings-card advertiser-card" data-account-panel="packages">
-              <h2>Pakketten en zichtbaarheid</h2>
               <div class="package-row"><span>Basis advertentie</span><strong>Actief</strong><button type="button" data-demo-save>Beheren</button></div>
               <div class="package-row"><span>Premium vitrin</span><strong>€149 / 30 dagen</strong><button type="button" data-demo-save>Activeren</button></div>
               <div class="package-row"><span>Veilingpositie</span><strong>Niet actief</strong><button type="button" data-demo-save>Bieden</button></div>
             </article>
             <article class="settings-card advertiser-card" data-account-panel="payments">
-              <h2>Betalingen</h2>
               <div class="mini-table">
                 <div><span>Beschikbaar saldo</span><strong>€${a.balance || 100}</strong></div>
                 <div><span>HE Coin</span><strong>${a.wallet || 0}</strong></div>
@@ -996,7 +993,6 @@
               <button class="settings-save" type="button" data-open-wallet>Betaalpagina openen</button>
             </article>
             <article class="settings-card advertiser-card" data-account-panel="messages">
-              <h2>Berichten & aanvragen</h2>
               <div class="message-list compact">
                 ${activityRows(activity.messages)}
                 ${activityRows(activity.notifications.slice(0, 1))}
@@ -1005,19 +1001,16 @@
           ` : ""}
           ${!isAdvertiser ? `
             <article class="settings-card" data-account-panel="reviews">
-              <h2>Yorumlar</h2>
               <div class="message-list compact">
                 ${activityRows(activity.reviews)}
               </div>
             </article>
             <article class="settings-card" data-account-panel="reports">
-              <h2>Raporlar</h2>
               <p>Güvenlik, şikayet ve destek talepleri buradan takip edilir.</p>
               <div class="message-list compact">${activityRows(activity.reports)}</div>
               <div class="account-list-row"><strong>Yeni rapor oluştur</strong><span>Destek ekibine gider ve Meldingen alanına bildirim düşer</span><button type="button" data-add-report>Başlat</button></div>
             </article>
             <article class="settings-card" data-account-panel="saved">
-              <h2>Opgeslagen Zoekopdrachten</h2>
               ${activity.saved.map(item => `<div class="account-list-row"><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(item.text || item.frequency)}</span><button type="button" data-demo-save>Düzenle</button></div>`).join("")}
               <div class="account-list-row"><strong>Yeni arama kaydet</strong><span>Arama ve bildirimlere bağlanır</span><button type="button" data-add-saved>Kaydet</button></div>
             </article>
@@ -1036,7 +1029,6 @@
             <button class="settings-save" data-demo-save>Wijzigingen opslaan</button>
           </article>
           <article class="settings-card" data-account-panel="${isAdvertiser ? "settings" : "notifications"}">
-            <h2>Meldingen</h2>
             <p>Bepaal hoe vaak je updates, favorieten en profielmeldingen ontvangt.</p>
             <div class="message-list compact">${activityRows(activity.notifications)}</div>
             <div class="settings-radios">
