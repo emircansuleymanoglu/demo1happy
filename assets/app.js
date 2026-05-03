@@ -2696,11 +2696,11 @@
   }
 
   window.heSignupApi = async (form) => {
-    try { const r = await api("/api/signup", form); return { ok: true, link: r.link }; }
+    try { const r = await api("/api/signup", { ...form, lang: lang() }); return { ok: true, link: r.link }; }
     catch (e) { return e.message === "no-api" ? { ok: true, fallback: true } : { ok: false, error: e.data?.error || "signup-failed" }; }
   };
   window.heLoginApi = async (username, password) => {
-    try { return await api("/api/login", { username, password }); }
+    try { return await api("/api/login", { username, password, lang: lang() }); }
     catch (e) { return e.message === "no-api" ? { fallback: true } : { error: e.data?.error || "login-failed", status: e.status }; }
   };
   window.heLoginCodeApi = async (username, code) => {
