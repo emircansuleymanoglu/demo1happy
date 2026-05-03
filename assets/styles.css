@@ -5519,3 +5519,17 @@ img, video, iframe {
 .shell, .member-shell, .account-settings-shell, .he-shell {
   max-width: 100%;
 }
+
+/* ---- Fav button ----------------------------------------- */
+.fav-btn { font-size: 16px; padding: 6px 10px; transition: color .15s; }
+.fav-btn.fav-active { color: #df2f45; border-color: #df2f45; }
+.fav-btn:hover { color: #df2f45; }
+
+/* ---- Detail message box --------------------------------- */
+.detail-message-box { margin-top: 16px; padding-top: 16px; border-top: 1px solid #eee; }
+.detail-message-box h3 { font-size: 15px; margin: 0 0 8px; }
+
+/* ---- Price/age filter grid ------------------------------ */
+.he-grid-2 { display: grid; grid-template-columns: 1fr 1fr; }
+.he-label { font-size: 12px; color: #666; display: block; }
+

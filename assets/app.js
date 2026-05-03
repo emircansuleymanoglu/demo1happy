@@ -15,9 +15,19 @@
   const advNotiKey = "happyend-he-notifications";
   const advPhotosKey = "happyend-he-photos";
   const advListingKey = "happyend-he-listing";
+  const visFavsKey = "happyend-vis-favs";
+  const visMessagesKey = "happyend-vis-messages";
+  const visSearchesKey = "happyend-vis-searches";
 
   function readJSON(key, fallback) { try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch { return fallback; } }
   function writeJSON(key, value) { localStorage.setItem(key, JSON.stringify(value)); }
+
+  function visFavs() { return readJSON(visFavsKey, []); }
+  function saveVisFavs(v) { writeJSON(visFavsKey, v); }
+  function visMessages() { return readJSON(visMessagesKey, []); }
+  function saveVisMessages(v) { writeJSON(visMessagesKey, v); }
+  function visSearches() { return readJSON(visSearchesKey, []); }
+  function saveVisSearches(v) { writeJSON(visSearchesKey, v); }
   function advInvoices() { return readJSON(advInvoicesKey, null) || seedInvoices(); }
   function saveInvoices(v) { writeJSON(advInvoicesKey, v); }
   function advMutations() { return readJSON(advMutationsKey, null) || seedMutations(); }
@@ -497,6 +507,7 @@
     const photos = item.photos || (item.featured ? 12 : 9);
     const reviews = item.reviews ?? (item.featured ? 1 : 0);
     const lastSeen = item.featured ? t("minuteAgo") : t("minutesAgo");
+    const isFav = visFavs().includes(item.id);
     return `
       <article class="card">
         <div class="card-badges">
@@ -511,7 +522,11 @@
           <div class="price-row"><strong>€${item.price}</strong><span>${t("or")} ${item.coins || Math.round(item.price / 10)} HE Coin</span></div>
           <div class="meta"><span>${icons.pin} ${escapeHtml(item.city)}</span><span>${icons.card} ${item.age}</span><span>${escapeHtml(tv(item.category))}</span><span>${escapeHtml(tv(item.orientation))}</span></div>
           <div class="listing-signals"><span>${photos} ${t("photosLabel")}</span><span>${reviews} ${t("reviewsLabel")}</span><span>${lastSeen}</span></div>
-          <div class="card-actions"><button class="btn primary small" data-detail="${item.id}">${t("showNumber")}</button><button class="btn ghost small" data-fav="${item.id}">${icons.star} ${t("favorite")}</button></div>
+          <div class="card-actions">
+            <button class="btn primary small" data-show-number="${item.id}">${t("showNumber")}</button>
+            <button class="btn ghost small" data-detail="${item.id}">Details</button>
+            <button class="btn ghost small fav-btn${isFav ? " fav-active" : ""}" data-fav="${item.id}" title="${t("favorite")}">${isFav ? "♥" : "♡"}</button>
+          </div>
         </div>
       </article>
     `;
@@ -586,12 +601,20 @@
             <select class="control" id="serviceSelect">${services.map(s => `<option value="${escapeHtml(s)}" ${s === activeService ? "selected" : ""}>${escapeHtml(tv(s))}</option>`).join("")}</select>
             <select class="control" id="citySelect">${cities.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(tv(c))}</option>`).join("")}</select>
             <div class="chips" id="categoryChips">${categories.map((c, i) => `<button class="chip ${i === 0 ? "active" : ""}" data-category="${c}">${escapeHtml(tv(c))}</button>`).join("")}</div>
+            <div class="he-grid-2" style="gap:8px;margin-bottom:8px">
+              <label class="he-label" style="font-size:12px">Min prijs (€)<input class="control" id="priceMin" type="number" min="0" placeholder="0" style="margin-top:4px"></label>
+              <label class="he-label" style="font-size:12px">Max prijs (€)<input class="control" id="priceMax" type="number" min="0" placeholder="999" style="margin-top:4px"></label>
+            </div>
+            <div class="he-grid-2" style="gap:8px;margin-bottom:8px">
+              <label class="he-label" style="font-size:12px">Min leeftijd<input class="control" id="ageMin" type="number" min="18" max="99" placeholder="18" style="margin-top:4px"></label>
+              <label class="he-label" style="font-size:12px">Max leeftijd<input class="control" id="ageMax" type="number" min="18" max="99" placeholder="99" style="margin-top:4px"></label>
+            </div>
             <div class="filter-toggles" id="qualityFilters">
               <button type="button" class="filter-check" id="photoFilter" aria-pressed="false">${t("tenPhotos")}</button>
               <button type="button" class="filter-check" id="videoFilter" aria-pressed="false">${t("withVideo")}</button>
               <button type="button" class="filter-check" id="reviewFilter" aria-pressed="false">${t("withReviews")}</button>
             </div>
-            <div class="filter-buttons"><button class="btn primary" id="searchBtn">${icons.search} ${t("search")}</button><button class="btn ghost" id="resetBtn">${icons.close} ${t("reset")}</button></div>
+            <div class="filter-buttons"><button class="btn primary" id="searchBtn">${icons.search} ${t("search")}</button><button class="btn ghost" id="resetBtn">${icons.close} ${t("reset")}</button><button class="btn ghost small" id="saveSearchBtn" title="Zoekopdracht opslaan">💾</button></div>
             <div class="trust-list"><span>${t("verifiedPhotos")}</span><span>${t("walletReady")}</span><span>${t("advertiserPackages")}</span><span>${t("gdpr")}</span></div>
             </div>
           </aside>
@@ -674,6 +697,10 @@
     };
     const apply = () => {
       const q = search.value.trim().toLowerCase();
+      const pMin = Number(document.getElementById("priceMin")?.value) || 0;
+      const pMax = Number(document.getElementById("priceMax")?.value) || 9999;
+      const aMin = Number(document.getElementById("ageMin")?.value) || 18;
+      const aMax = Number(document.getElementById("ageMax")?.value) || 99;
       let data = listings().filter(item => {
         const text = [item.name, item.city, item.service, item.category].join(" ").toLowerCase();
         const photos = item.photos || (item.featured ? 12 : 9);
@@ -686,7 +713,9 @@
           (!state.availableOnly || item.available) &&
           (!isQualityOn(photoFilter) || photos >= 10) &&
           (!isQualityOn(videoFilter) || hasVideo) &&
-          (!isQualityOn(reviewFilter) || reviews > 0);
+          (!isQualityOn(reviewFilter) || reviews > 0) &&
+          (item.price >= pMin && item.price <= pMax) &&
+          (item.age >= aMin && item.age <= aMax);
       });
       if (state.sort === "newest") data = data.sort((a, b) => (b.featured === a.featured ? b.name.localeCompare(a.name) : Number(b.featured) - Number(a.featured)));
       if (state.sort === "nearby") data = data.sort((a, b) => a.city.localeCompare(b.city));
@@ -698,7 +727,41 @@
     city.addEventListener("change", apply);
     [photoFilter, videoFilter, reviewFilter].forEach(button => button.addEventListener("click", () => { setQuality(button, !isQualityOn(button)); apply(); }));
     document.getElementById("searchBtn").addEventListener("click", apply);
-    document.getElementById("resetBtn").addEventListener("click", () => { search.value = ""; if (topSearch) topSearch.value = ""; if (topCategory) topCategory.value = ""; service.value = "Tüm Hizmetler"; city.value = "Tüm Konumlar"; [photoFilter, videoFilter, reviewFilter].forEach(button => setQuality(button, false)); state = { category: "Tümü", availableOnly: false, sort: "default" }; document.querySelectorAll(".chip").forEach((b, i) => b.classList.toggle("active", i === 0)); document.querySelectorAll(".view-tools .btn").forEach(btn => btn.classList.remove("primary")); apply(); });
+    document.getElementById("resetBtn").addEventListener("click", () => {
+      search.value = "";
+      if (topSearch) topSearch.value = "";
+      if (topCategory) topCategory.value = "";
+      service.value = "Tüm Hizmetler";
+      city.value = "Tüm Konumlar";
+      const pMin = document.getElementById("priceMin"); if (pMin) pMin.value = "";
+      const pMax = document.getElementById("priceMax"); if (pMax) pMax.value = "";
+      const aMin = document.getElementById("ageMin"); if (aMin) aMin.value = "";
+      const aMax = document.getElementById("ageMax"); if (aMax) aMax.value = "";
+      [photoFilter, videoFilter, reviewFilter].forEach(button => setQuality(button, false));
+      state = { category: "Tümü", availableOnly: false, sort: "default" };
+      document.querySelectorAll(".chip").forEach((b, i) => b.classList.toggle("active", i === 0));
+      document.querySelectorAll(".view-tools .btn").forEach(btn => btn.classList.remove("primary"));
+      apply();
+    });
+    document.getElementById("saveSearchBtn")?.addEventListener("click", () => {
+      const s = session();
+      if (!s) { toast("Log eerst in om zoekopdrachten op te slaan."); return; }
+      const name = prompt("Naam voor deze zoekopdracht:") || "Zoekopdracht";
+      const params = {
+        q: search.value.trim(),
+        service: service.value,
+        city: city.value,
+        category: state.category,
+        pMin: document.getElementById("priceMin")?.value || "",
+        pMax: document.getElementById("priceMax")?.value || "",
+        aMin: document.getElementById("ageMin")?.value || "",
+        aMax: document.getElementById("ageMax")?.value || "",
+      };
+      const searches = visSearches();
+      searches.unshift({ id: `vs${Date.now()}`, name, params, at: Date.now() });
+      saveVisSearches(searches);
+      toast(`"${name}" opgeslagen.`);
+    });
     document.getElementById("onlyAvailable").addEventListener("click", event => { state.availableOnly = !state.availableOnly; event.currentTarget.classList.toggle("primary", state.availableOnly); apply(); });
     document.getElementById("sortNewest").addEventListener("click", event => { state.sort = state.sort === "newest" ? "default" : "newest"; document.getElementById("sortNearby").classList.remove("primary"); event.currentTarget.classList.toggle("primary", state.sort === "newest"); apply(); });
     document.getElementById("sortNearby").addEventListener("click", event => { state.sort = state.sort === "nearby" ? "default" : "nearby"; document.getElementById("sortNewest").classList.remove("primary"); event.currentTarget.classList.toggle("primary", state.sort === "nearby"); apply(); });
@@ -772,6 +835,14 @@
   function showDetail(id) {
     const item = listings().find(x => x.id === id);
     if (!item) return;
+    const s = session();
+    const messageSection = s && s.role !== "admin" ? `
+      <div class="detail-message-box">
+        <h3>Stuur een bericht</h3>
+        <textarea id="detailMsgBody" placeholder="Schrijf je bericht hier..." rows="3" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;resize:vertical;font-size:14px"></textarea>
+        <button class="btn primary small" style="margin-top:8px" data-send-msg="${item.id}">Verstuur bericht</button>
+      </div>
+    ` : s ? "" : `<p class="subtle" style="font-size:13px;margin-top:8px"><a href="account/login/">Inloggen</a> om een bericht te sturen.</p>`;
     document.getElementById("modalHost").innerHTML = `
       <div class="modal-backdrop" data-modal-close>
         <section class="dialog" onclick="event.stopPropagation()">
@@ -784,11 +855,26 @@
               <label>${t("detailPaymentType")}<select class="control" id="checkoutMethod"><option value="coins">HE Coin</option><option value="EUR">EUR</option><option value="USD">USD</option></select></label>
               <label>${t("privacyLevel")}<select class="control"><option>${t("standardRequest")}</option><option>${t("premiumRequest")}</option></select></label>
             </div>
+            ${messageSection}
             <div class="dialog-actions"><button class="btn primary" data-booking="${item.id}">${t("request")}</button><button class="btn ghost" data-modal-close>${t("close")}</button></div>
           </div>
         </section>
       </div>
     `;
+    document.querySelector(`[data-send-msg="${id}"]`)?.addEventListener("click", () => {
+      const body = document.getElementById("detailMsgBody")?.value.trim();
+      if (!body) { toast("Bericht is leeg."); return; }
+      const s = session();
+      const msgId = `vm${Date.now()}`;
+      const msgs = visMessages();
+      msgs.unshift({ id: msgId, to: item.id, toName: item.name, from: s.username, body, at: Date.now(), unread: false });
+      saveVisMessages(msgs);
+      const advMsgs = advMessages();
+      advMsgs.unshift({ id: msgId, from: s.username, subject: `Bericht over ${item.name}`, body, at: Date.now(), unread: true, replies: [] });
+      saveMessages(advMsgs);
+      toast("Bericht verzonden.");
+      document.getElementById("modalHost").innerHTML = "";
+    });
     bindModalClose();
   }
 
@@ -998,233 +1084,176 @@
     const s = session();
     const isAdvertiser = a.role === "advertiser";
     if (isAdvertiser) { advertiserDashboard(a, s); return; }
-    const settingsMenu = isAdvertiser
-      ? ["Ayarlar", "Profil", "Ilanlar", "Medya", "Paketler", "Odemeler", "Mesajlar"]
-      : ["Ayarlar", "Yorumlar", "Raporlar", "Meldingen", "Opgeslagen Zoekopdrachten"];
-    root.innerHTML = `
-      ${accountVersionBanner()}
-      ${header("account")}
-      ${s && s.needsSettingsConfirm ? settingsConfirmModal(a) : ""}
-      <main class="account-settings-shell">
-        <aside class="account-settings-sidebar">
-          ${settingsMenu.map((item, index) => `<a class="${index === 0 ? "active" : ""}" href="#">${item}</a>`).join("")}
-          <button id="memberLogout">Uitloggen</button>
-        </aside>
-        <section class="account-settings-main">
-          <h1>Ayarlar</h1>
-          <article class="settings-card">
-            <h2>Wijzig bijnaam</h2>
-            <label>Nieuwe bijnaam</label>
-            <input id="memberName" value="${escapeHtml(a.name || a.username)}">
-            <button class="settings-save" data-demo-save>Wijzigen</button>
-          </article>
-          <article class="settings-card">
-            <h2>Voorkeurstaal</h2>
-            <p>Selecteer alstublieft jouw voorkeurstaal</p>
-            <select id="memberLanguage"><option>NL</option><option>TR</option><option>EN</option><option>DE</option><option>FR</option><option>ES</option></select>
-          </article>
-          ${isAdvertiser ? `
-            <article class="settings-card advertiser-card">
-              <h2>Advertentieprofiel</h2>
-              <label>Profielnaam</label>
-              <input id="memberListingTitle" value="${escapeHtml(a.listingTitle || "1HappyEnd demo profiel")}">
-              <label>Dienst</label>
-              <select id="memberService">${services.slice(1).map(svc => `<option>${svc}</option>`).join("")}</select>
-              <label>Stad</label>
-              <select id="memberCity">${cities.slice(1).map(city => `<option>${city}</option>`).join("")}</select>
-              <label>Prijsindicatie</label>
-              <input id="memberPrice" value="€180 per uur">
-              <label>Korte omschrijving</label>
-              <textarea id="memberBio">Foto, video, prijs en beschikbaarheid kunnen hier worden voorbereid.</textarea>
-              <button class="settings-save" data-demo-save>Wijzigingen opslaan</button>
-            </article>
-            <article class="settings-card advertiser-card">
-              <h2>Media & verificatie</h2>
-              <div class="advertiser-status"><span>Profielstatus</span><strong>Concept · admin controle nodig</strong></div>
-              <div class="media-upload-grid">
-                <button type="button" data-demo-save>Profielfoto uploaden</button>
-                <button type="button" data-demo-save>Galerij toevoegen</button>
-                <button type="button" data-demo-save>Verificatiefoto uploaden</button>
-                <button type="button" data-demo-save>Video toevoegen</button>
+
+    function renderVisitorPage(activeTab) {
+      const favIds = visFavs();
+      const favListings = listings().filter(x => favIds.includes(x.id));
+      const myMessages = visMessages();
+      const mySearches = visSearches();
+
+      const favsHtml = favListings.length
+        ? favListings.map(item => `
+            <article class="settings-card" style="display:flex;gap:12px;align-items:center;padding:12px 16px">
+              <div class="card-media ${item.image || "portrait-1"}" style="width:56px;height:56px;border-radius:8px;flex-shrink:0"></div>
+              <div style="flex:1;min-width:0">
+                <strong style="display:block">${escapeHtml(item.name)}</strong>
+                <span style="font-size:13px;color:#666">${escapeHtml(tv(item.service))} · ${escapeHtml(item.city)} · €${item.price}</span>
               </div>
-              <p>Media wordt in deze demo lokaal gesimuleerd. In de echte versie komt hier upload, preview en moderatie.</p>
-            </article>
-            <article class="settings-card advertiser-card">
-              <h2>Pakketten en zichtbaarheid</h2>
-              <div class="package-row"><span>Basis advertentie</span><strong>Actief</strong><button type="button" data-demo-save>Beheren</button></div>
-              <div class="package-row"><span>Premium vitrin</span><strong>€149 / 30 dagen</strong><button type="button" data-demo-save>Activeren</button></div>
-              <div class="package-row"><span>Veilingpositie</span><strong>Niet actief</strong><button type="button" data-demo-save>Bieden</button></div>
-            </article>
-            <article class="settings-card advertiser-card">
-              <h2>Betalingen</h2>
-              <div class="mini-table">
-                <div><span>Beschikbaar saldo</span><strong>€${a.balance || 100}</strong></div>
-                <div><span>HE Coin</span><strong>${a.wallet || 0}</strong></div>
-                <div><span>Laatste betaling</span><strong>Demo checkout voorbereid</strong></div>
+              <button class="btn ghost small" data-vis-unfav="${item.id}" title="Verwijderen">✕</button>
+            </article>`).join("")
+        : `<p style="color:#888;padding:16px 0">Nog geen favorieten opgeslagen. Klik op ♡ bij een profiel.</p>`;
+
+      const msgsHtml = myMessages.length
+        ? myMessages.map(m => `
+            <article class="settings-card" style="padding:12px 16px">
+              <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+                <strong>Aan: ${escapeHtml(m.toName || m.to)}</strong>
+                <em style="font-size:12px;color:#888">${fmtRel(m.at)}</em>
               </div>
-              <button class="settings-save" type="button" data-open-wallet>Betaalpagina openen</button>
-            </article>
-            <article class="settings-card advertiser-card">
-              <h2>Berichten & aanvragen</h2>
-              <div class="message-list compact">
-                <article><strong>Nieuwe aanvraag</strong><span>Visitor demo vraagt beschikbaarheid en prijsinformatie.</span><em>1 minuut geleden</em></article>
-                <article><strong>Support</strong><span>Verificatie en advertentiecontrole staan klaar voor admin review.</span><em>Vandaag</em></article>
+              <p style="margin:0;font-size:14px;color:#444">${escapeHtml(m.body)}</p>
+              <button class="btn ghost small" data-vis-delmsg="${m.id}" style="margin-top:8px">Verwijderen</button>
+            </article>`).join("")
+        : `<p style="color:#888;padding:16px 0">Nog geen berichten verstuurd. Open een profiel en klik op "Details" om een bericht te sturen.</p>`;
+
+      const searchesHtml = mySearches.length
+        ? mySearches.map(sr => `
+            <article class="settings-card" style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px">
+              <div>
+                <strong style="display:block">${escapeHtml(sr.name)}</strong>
+                <span style="font-size:12px;color:#888">${[sr.params.service !== "Tüm Hizmetler" && sr.params.service, sr.params.city !== "Tüm Konumlar" && sr.params.city, sr.params.q].filter(Boolean).join(" · ") || "Alle profielen"}</span>
               </div>
-            </article>
-          ` : ""}
-          <article class="settings-card">
-            <h2>Berichtenbox</h2>
-            <p>Via de berichtenbox kun je veilig contact onderhouden binnen 1HappyEnd. In de demo wordt dit lokaal opgeslagen.</p>
-            <label class="settings-toggle"><input type="checkbox" checked><span></span><b>De berichtenbox staat aan</b></label>
-            <div class="settings-radios">
-              <p>Ik wil een e-mail ontvangen:</p>
-              <label><input type="radio" name="msgfreq" checked> Bij ieder nieuw bericht</label>
-              <label><input type="radio" name="msgfreq"> Maximaal 1 keer per dag</label>
-              <label><input type="radio" name="msgfreq"> Maximaal 1 keer per week</label>
-              <label><input type="radio" name="msgfreq"> Stuur mij geen email</label>
-            </div>
-            <button class="settings-save" data-demo-save>Wijzigingen opslaan</button>
-          </article>
-          <article class="settings-card">
-            <h2>Meldingen</h2>
-            <p>Bepaal hoe vaak je updates, favorieten en profielmeldingen ontvangt.</p>
-            <div class="settings-radios">
-              <label><input type="radio" name="notfreq" checked> Bij iedere melding</label>
-              <label><input type="radio" name="notfreq"> Maximaal 1 keer per dag</label>
-              <label><input type="radio" name="notfreq"> Maximaal 1 keer per week</label>
-              <label><input type="radio" name="notfreq"> Geen meldingen per email</label>
-            </div>
-            <button class="settings-save" data-demo-save>Wijzigingen opslaan</button>
-          </article>
-          <article class="settings-card">
-            <h2>Wachtwoord wijzigen</h2>
-            <label>Oude wachtwoord</label><input type="password">
-            <label>Nieuwe wachtwoord</label><input type="password">
-            <label>Herhaal nieuwe wachtwoord</label><input type="password">
-            <button class="settings-save" data-demo-save>Wijzigen</button>
-          </article>
-          <article class="settings-card">
-            <h2>E-mailadres wijzigen</h2>
-            <p>Na wijziging wordt een bevestigingslink naar het nieuwe adres gestuurd.</p>
-            <label>Nieuw e-mailadres</label>
-            <input id="memberEmail" type="email" value="${escapeHtml(a.email || "")}">
-            <button class="settings-save" data-demo-save>Wijzigen</button>
-          </article>
-          <article class="settings-card danger">
-            <h2>Account verwijderen</h2>
-            <p>Demo ortamında hesap silme işlemi yalnızca örnek akış olarak gösterilir.</p>
-            <a href="#" data-demo-save>Verwijderen hesabını tıklayın</a>
-          </article>
-        </section>
-      </main>
-      ${footer()}
-    `;
-    bindGlobal();
-    bindMemberDashboard();
-    return;
-    const memberTitle = isAdvertiser ? "Reklamveren hesabı" : "Ziyaretçi hesabı";
-    const memberText = isAdvertiser
-      ? "İlan, doğrulama, medya, müsaitlik ve vitrin paketlerini tek panelden yönetin."
-      : "Favoriler, HE Coin bakiyesi, randevu talepleri ve güvenli mesajlarınızı yönetin.";
-    root.innerHTML = `
-      ${header("account")}
-      ${s && s.needsSettingsConfirm ? settingsConfirmModal(a) : ""}
-      <main class="member-shell">
-        <section class="member-hero">
-          <div>
-            <span class="eyebrow">1HappyEnd üyelik merkezi</span>
-            <h1>${memberTitle}</h1>
-            <p>${memberText}</p>
-          </div>
-          <div class="member-id-card">
-            <span>${isAdvertiser ? "Advertiser ID" : "Visitor ID"}</span>
-            <strong>${escapeHtml(a.username)}</strong>
-            <em>${escapeHtml(a.email || "email eklenmedi")}</em>
-          </div>
-        </section>
-        <section class="member-grid">
-          <aside class="member-menu">
-            <button class="active" data-member-tab="overview">Genel Bakış</button>
-            <button data-member-tab="profile">${isAdvertiser ? "Profil & İlan" : "Profil"}</button>
-            <button data-member-tab="wallet">Cüzdan</button>
-            <button data-member-tab="messages">Mesajlar</button>
-            <button data-member-tab="security">Güvenlik</button>
-            <button id="memberLogout">Çıkış</button>
+              <div style="display:flex;gap:8px">
+                <a class="btn primary small" href="../?service=${encodeURIComponent(sr.params.service || "")}">Toepassen</a>
+                <button class="btn ghost small" data-vis-delsearch="${sr.id}">✕</button>
+              </div>
+            </article>`).join("")
+        : `<p style="color:#888;padding:16px 0">Nog geen zoekopdrachten opgeslagen. Gebruik de filters op de <a href="../">homepagina</a> en klik op 💾.</p>`;
+
+      const tabs = [
+        { key: "favs", label: `♥ Favorieten (${favIds.length})` },
+        { key: "msgs", label: `✉ Berichten (${myMessages.length})` },
+        { key: "searches", label: `🔍 Zoekopdrachten (${mySearches.length})` },
+        { key: "settings", label: "⚙ Instellingen" }
+      ];
+
+      root.innerHTML = `
+        ${accountVersionBanner()}
+        ${header("account")}
+        ${s && s.needsSettingsConfirm ? settingsConfirmModal(a) : ""}
+        <main class="account-settings-shell">
+          <aside class="account-settings-sidebar">
+            ${tabs.map(tab => `<a class="${tab.key === activeTab ? "active" : ""}" href="#" data-vis-tab="${tab.key}">${tab.label}</a>`).join("")}
+            <button id="memberLogout">Uitloggen</button>
           </aside>
-          <section class="member-content">
-            <div class="member-tab active" id="tab-overview">
-              <div class="member-stats">
-                <article><span>Hesap tipi</span><strong>${isAdvertiser ? "Reklamveren" : "Ziyaretçi"}</strong></article>
-                <article><span>HE Coin</span><strong>${a.wallet || 0}</strong></article>
-                <article><span>${isAdvertiser ? "Vitrin bakiyesi" : "Favori profil"}</span><strong>${isAdvertiser ? `€${a.balance || 0}` : "6"}</strong></article>
-                <article><span>Durum</span><strong>18+ onaylı</strong></article>
-              </div>
-              <div class="member-card">
-                <h2>${isAdvertiser ? "Yayın hazırlığı" : "Üyelik avantajları"}</h2>
-                <div class="checklist">
-                  <label><input type="checkbox" checked> 18+ onay ve kullanım koşulları</label>
-                  <label><input type="checkbox" checked> E-posta/telefon doğrulama adımı</label>
-                  <label><input type="checkbox" ${isAdvertiser ? "checked" : ""}> ${isAdvertiser ? "İlan paketi ve vitrin hazırlığı" : "HE Coin ile talep oluşturma"}</label>
-                  <label><input type="checkbox"> Canlı ödeme sağlayıcısı bağlanınca otomatik tahsilat</label>
+          <section class="account-settings-main">
+            ${activeTab === "favs" ? `<h1>Mijn favorieten</h1>${favsHtml}` : ""}
+            ${activeTab === "msgs" ? `<h1>Mijn berichten</h1>${msgsHtml}` : ""}
+            ${activeTab === "searches" ? `<h1>Opgeslagen zoekopdrachten</h1>${searchesHtml}` : ""}
+            ${activeTab === "settings" ? `
+              <h1>Instellingen</h1>
+              <article class="settings-card">
+                <h2>Bijnaam wijzigen</h2>
+                <label>Nieuwe bijnaam</label>
+                <input id="memberName" value="${escapeHtml(a.name || a.username)}">
+                <button class="settings-save" data-demo-save>Wijzigen</button>
+              </article>
+              <article class="settings-card">
+                <h2>Voorkeurstaal</h2>
+                <select id="memberLanguage">
+                  ${[["nl","Nederlands"],["tr","Türkçe"],["en","English"],["de","Deutsch"],["fr","Français"],["es","Español"]].map(([code,label]) => `<option value="${code}" ${lang() === code ? "selected" : ""}>${label}</option>`).join("")}
+                </select>
+                <button class="settings-save" id="langSaveBtn" style="margin-top:8px">Opslaan</button>
+              </article>
+              <article class="settings-card">
+                <h2>Berichtenbox instellingen</h2>
+                <label class="settings-toggle"><input type="checkbox" checked><span></span><b>Berichtenbox aan</b></label>
+                <div class="settings-radios" style="margin-top:12px">
+                  <p>E-mail ontvangen:</p>
+                  <label><input type="radio" name="msgfreq" checked> Bij ieder nieuw bericht</label>
+                  <label><input type="radio" name="msgfreq"> Maximaal 1 keer per dag</label>
+                  <label><input type="radio" name="msgfreq"> Geen e-mail</label>
                 </div>
-              </div>
-            </div>
-            <div class="member-tab" id="tab-profile">
-              <div class="member-card">
-                <h2>${isAdvertiser ? "Reklamveren profil bilgileri" : "Ziyaretçi profil bilgileri"}</h2>
-                <form class="member-form" id="memberProfileForm">
-                  <label>Ad Soyad / Firma<input id="memberName" value="${escapeHtml(a.name || "")}"></label>
-                  <label>E-posta<input id="memberEmail" type="email" value="${escapeHtml(a.email || "")}"></label>
-                  ${isAdvertiser ? `
-                    <label>İlan başlığı<input id="memberListingTitle" value="${escapeHtml(a.listingTitle || "Premium doğrulanmış profil")}"></label>
-                    <label>Hizmet türü<select id="memberService">${services.slice(1).map(svc => `<option ${a.service === svc ? "selected" : ""}>${svc}</option>`).join("")}</select></label>
-                    <label>Kısa açıklama<textarea id="memberBio">${escapeHtml(a.bio || "Fotoğraf, video, fiyat ve müsaitlik bilgileri panelden yönetilir.")}</textarea></label>
-                    <div class="upload-strip"><span>Fotoğraf yükleme</span><button type="button" data-demo-upload>Dosya seç</button><em>Mock upload hazır</em></div>
-                  ` : `
-                    <label>Tercih edilen şehir<select id="memberCity">${cities.slice(1).map(city => `<option ${a.city === city ? "selected" : ""}>${city}</option>`).join("")}</select></label>
-                    <label>Gizlilik tercihi<select id="memberPrivacy"><option>Standart</option><option>Premium doğrulamalı talep</option></select></label>
-                  `}
-                  <button class="classic-submit" type="submit">Bilgileri kaydet</button>
-                </form>
-              </div>
-            </div>
-            <div class="member-tab" id="tab-wallet">
-              <div class="member-card">
-                <h2>Cüzdan ve ödeme hazırlığı</h2>
-                <div class="wallet-summary member-wallet"><span>HE Coin</span><strong>${a.wallet || 0}</strong><span>EUR</span><strong>€${a.balance || 0}</strong><span>USD</span><strong>$0</strong></div>
-                <div class="package-grid compact-packages">
-                  <article class="package-card"><span class="pill">Visitor</span><h3>100 HE Coin</h3><strong>€89</strong><button class="classic-outline" data-package="100">Paketi seç</button></article>
-                  <article class="package-card"><span class="pill">Advertiser</span><h3>Vitrin Boost</h3><strong>€149</strong><button class="classic-outline" data-package="boost">Paketi seç</button></article>
-                </div>
-              </div>
-            </div>
-            <div class="member-tab" id="tab-messages">
-              <div class="member-card">
-                <h2>Mesajlar ve talepler</h2>
-                <div class="message-list">
-                  <article><strong>Support</strong><span>Hesabınız demo ortamında aktif. Canlıya geçince e-posta bildirimleri bağlanacak.</span><em>az önce</em></article>
-                  <article><strong>${isAdvertiser ? "Yeni talep" : "Randevu talebi"}</strong><span>${isAdvertiser ? "Ziyaretçi talepleri burada listelenecek." : "Seçtiğiniz profillerle güvenli mesajlaşma hazır."}</span><em>1 dk önce</em></article>
-                </div>
-              </div>
-            </div>
-            <div class="member-tab" id="tab-security">
-              <div class="member-card">
-                <h2>Güvenlik ve doğrulama</h2>
-                <div class="checklist">
-                  <label><input type="checkbox" checked> 18+ yaş beyanı</label>
-                  <label><input type="checkbox" checked> Çerez ve gizlilik onayı</label>
-                  <label><input type="checkbox"> Kimlik doğrulama sağlayıcısı entegrasyonu</label>
-                  <label><input type="checkbox"> Şikayet ve engelleme kayıtları</label>
-                </div>
-              </div>
-            </div>
+                <button class="settings-save" data-demo-save style="margin-top:8px">Opslaan</button>
+              </article>
+              <article class="settings-card">
+                <h2>E-mailadres wijzigen</h2>
+                <label>Nieuw e-mailadres</label>
+                <input id="memberEmail" type="email" value="${escapeHtml(a.email || "")}">
+                <button class="settings-save" data-demo-save>Wijzigen</button>
+              </article>
+              <article class="settings-card">
+                <h2>Wachtwoord wijzigen</h2>
+                <label>Oud wachtwoord</label><input type="password" id="oldPw">
+                <label>Nieuw wachtwoord</label><input type="password" id="newPw">
+                <label>Herhaal nieuw wachtwoord</label><input type="password" id="newPw2">
+                <button class="settings-save" id="changePwBtn">Wijzigen</button>
+              </article>
+              <article class="settings-card danger">
+                <h2>Account verwijderen</h2>
+                <p style="font-size:13px;color:#888">In de demo wordt dit gesimuleerd.</p>
+                <a href="#" data-demo-save>Account verwijderen</a>
+              </article>
+            ` : ""}
           </section>
-        </section>
-      </main>
-      ${footer()}
-    `;
-    bindGlobal();
-    bindMemberDashboard();
+        </main>
+        ${footer()}
+      `;
+      bindGlobal();
+
+      document.querySelectorAll("[data-vis-tab]").forEach(el => {
+        el.addEventListener("click", e => { e.preventDefault(); renderVisitorPage(el.dataset.visTab); });
+      });
+      document.getElementById("memberLogout")?.addEventListener("click", () => { setSession(null); location.href = "../index.html"; });
+
+      document.querySelectorAll("[data-vis-unfav]").forEach(el => {
+        el.addEventListener("click", () => {
+          const favs = visFavs().filter(id => id !== el.dataset.visUnfav);
+          saveVisFavs(favs);
+          renderVisitorPage("favs");
+        });
+      });
+      document.querySelectorAll("[data-vis-delmsg]").forEach(el => {
+        el.addEventListener("click", () => { saveVisMessages(visMessages().filter(m => m.id !== el.dataset.VisDelmsg && m.id !== el.dataset.vissDelmsg)); renderVisitorPage("msgs"); });
+      });
+      document.querySelectorAll("[data-vis-delsearch]").forEach(el => {
+        el.addEventListener("click", () => { saveVisSearches(visSearches().filter(s => s.id !== el.dataset.visDelsearch)); renderVisitorPage("searches"); });
+      });
+      document.getElementById("langSaveBtn")?.addEventListener("click", () => {
+        const val = document.getElementById("memberLanguage")?.value;
+        if (val) { localStorage.setItem(languageKey, val); location.reload(); }
+      });
+      document.getElementById("changePwBtn")?.addEventListener("click", () => {
+        const old = document.getElementById("oldPw")?.value;
+        const nw = document.getElementById("newPw")?.value;
+        const nw2 = document.getElementById("newPw2")?.value;
+        if (!old || !nw) { toast("Vul alle velden in."); return; }
+        if (nw !== nw2) { toast("Wachtwoorden komen niet overeen."); return; }
+        const list = accounts();
+        const idx = list.findIndex(x => x.username === a.username && x.role === a.role);
+        if (idx < 0 || list[idx].password !== old) { toast("Oud wachtwoord klopt niet."); return; }
+        list[idx].password = nw;
+        saveAccounts(list);
+        toast("Wachtwoord gewijzigd.");
+      });
+      document.querySelectorAll("[data-demo-save]").forEach(el => el.addEventListener("click", e => {
+        e.preventDefault();
+        const list = accounts();
+        const idx = list.findIndex(x => x.username === a.username && x.role === a.role);
+        if (idx >= 0) {
+          const name = document.getElementById("memberName")?.value;
+          const email = document.getElementById("memberEmail")?.value;
+          if (name) list[idx].name = name.trim();
+          if (email) list[idx].email = email.trim();
+          saveAccounts(list);
+        }
+        toast("Wijzigingen opgeslagen.");
+      }));
+      bindMemberDashboard();
+    }
+
+    const hash = (location.hash || "").replace(/^#/, "") || "favs";
+    const validTabs = ["favs", "msgs", "searches", "settings"];
+    renderVisitorPage(validTabs.includes(hash) ? hash : "favs");
   }
 
   function accountVersionBanner() {
@@ -2249,6 +2278,13 @@
 
     document.getElementById("advValidatieForm")?.addEventListener("submit", event => {
       event.preventDefault();
+      const phone = document.getElementById("advPhone")?.value.trim();
+      if (phone) {
+        const list = accounts();
+        const cur = currentAccount();
+        const idx = list.findIndex(x => x.username === cur?.username && x.role === cur?.role);
+        if (idx >= 0) { list[idx].phone = phone; saveAccounts(list); }
+      }
       const noti = advNotifications();
       noti.unshift({ id: `n${Date.now()}`, title: "Doğrulama", text: "Numara doğrulama tamamlandı.", at: Date.now(), read: false });
       saveNotifications(noti);
@@ -2463,6 +2499,7 @@
     document.getElementById("languageSelect")?.addEventListener("change", event => { localStorage.setItem(languageKey, event.target.value); location.reload(); });
     document.body.addEventListener("click", event => {
       const detail = event.target.closest("[data-detail]");
+      const showNum = event.target.closest("[data-show-number]");
       const fav = event.target.closest("[data-fav]");
       const age = event.target.closest("[data-age-ok]");
       const support = event.target.closest("[data-support]");
@@ -2475,7 +2512,36 @@
       const close = event.target.closest("[data-modal-close]");
       const legalClose = event.target.closest(".legal-close");
       if (detail) showDetail(detail.dataset.detail);
-      if (fav) toast(t("favAdded"));
+      if (showNum) {
+        const s = session();
+        if (!s) { location.href = (basePrefix() || "") + "account/login/"; return; }
+        const item = listings().find(x => x.id === showNum.dataset.showNumber);
+        if (!item) return;
+        const phone = item.phone || "+31 6 " + Math.floor(10000000 + Math.random() * 89999999);
+        if (!item.phone) { const all = listings(); const idx = all.findIndex(x => x.id === item.id); if (idx >= 0) { all[idx].phone = phone; saveListings(all); } }
+        document.getElementById("modalHost").innerHTML = `
+          <div class="modal-backdrop" data-modal-close>
+            <section class="dialog" onclick="event.stopPropagation()" style="max-width:360px">
+              <div class="dialog-body" style="text-align:center;padding:32px 24px">
+                <h2 style="margin-bottom:8px">${escapeHtml(item.name)}</h2>
+                <p class="subtle" style="margin-bottom:20px">${escapeHtml(tv(item.service))} · ${escapeHtml(item.city)}</p>
+                <div style="font-size:26px;font-weight:700;letter-spacing:2px;color:var(--red,#df2f45);margin-bottom:20px">${phone}</div>
+                <p class="subtle" style="font-size:12px">Dit nummer is alleen zichtbaar voor ingelogde leden.</p>
+                <div class="dialog-actions" style="justify-content:center;margin-top:16px"><button class="btn ghost" data-modal-close>Sluiten</button></div>
+              </div>
+            </section>
+          </div>`;
+        bindModalClose();
+        return;
+      }
+      if (fav) {
+        const id = fav.dataset.fav;
+        const favs = visFavs();
+        const idx = favs.indexOf(id);
+        if (idx >= 0) { favs.splice(idx, 1); saveVisFavs(favs); fav.textContent = "♡"; fav.classList.remove("fav-active"); toast("Verwijderd uit favorieten."); }
+        else { favs.push(id); saveVisFavs(favs); fav.textContent = "♥"; fav.classList.add("fav-active"); toast(t("favAdded")); }
+        return;
+      }
       if (age || essential) acceptLegalGate();
       if (legalClose) toast(t("legalNeed"));
       if (settings) document.getElementById("cookieSettings")?.classList.toggle("open");
